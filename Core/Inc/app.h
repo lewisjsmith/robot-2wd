@@ -97,8 +97,8 @@ typedef struct {
 } _USART_struct;
 
 void init_rcc(void);
-void init_gpiob(void);
-void init_tim2(void);
+void init_pwm_gpiob(void);
+void init_pwm_tim2(void);
 void init_usart2(void);
 void init_systick(void);
 
