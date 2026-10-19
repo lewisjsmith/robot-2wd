@@ -138,6 +138,43 @@ void TIM2_IRQHandler(void){
 	// Do something
 };
 
+void init_mdriver_gpiob(void) {
+	// PB4
+	_GPIOB->MODER &= ~(3u << 8);
+	_GPIOB->MODER |= (1u << 8);
+
+	// PB5
+	_GPIOB->MODER &= ~(3u << 10);
+	_GPIOB->MODER |= (1u << 10);
+
+	// PB13
+	_GPIOB->MODER &= ~(3u << 26);
+	_GPIOB->MODER |= (1u << 26);
+
+	// PB14
+	_GPIOB->MODER &= ~(3u << 28);
+	_GPIOB->MODER |= (1u << 28);
+
+	// PB8
+	_GPIOB->MODER &= ~(3u << 16);
+	_GPIOB->MODER |= (1u << 16);
+}
+
+void test_motor_forwards(void) {
+	_GPIOB->BSRR |= (1u << 8); // STBY
+//	_GPIOB->BSRR |= (1u << 24);
+
+	_GPIOB->BSRR |= (1u << 4); // AIN1 high
+//	_GPIOB->BSRR |= (1u << 20); // AIN1 reset
+
+//	_GPIOB->BSRR |= (1u << 5);
+	_GPIOB->BSRR |= (1u << 21); // AIN2 reset
+
+	// PB4, PB5, PB8, PB9
+}
+
+void init_encoder_gpio(void){};
+
 // PB9 TIM2_CH2 and PB10 TIM2_CH3, driving PWMA and PWMB
 
 // PB4, PB5, PB13, PB14 for AIN1, AIN2, BIN1, BIN2,

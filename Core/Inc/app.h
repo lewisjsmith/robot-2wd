@@ -102,6 +102,9 @@ void init_pwm_tim2(void);
 void init_usart2(void);
 void init_systick(void);
 
+void init_mdriver_gpiob(void);
+void test_motor_forwards(void);
+
 void USART2_IRQHandler(void);
 void usart2_write_char(char);
 void usart2_write_string(char*);
