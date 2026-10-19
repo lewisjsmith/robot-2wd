@@ -5,6 +5,8 @@
  *      Author: lewis
  */
 
+#include <stdio.h>
+
 #include "app.h"
 
 void init_rcc(void) {
@@ -49,12 +51,18 @@ void usart2_write_string(char* str) {
 	}
 }
 
+// Extend to strings when required
 void usart2_read_char(void) {
 	while(!(_USART2->SR & (1u << 5)));
 	char c = _USART2->DR;
-	usart2_write_char(c);
+
+	// echo
+	char buffer[100];
+	snprintf(buffer, sizeof(buffer), "Received: %c \r\n", c);
+ 	usart2_write_string(buffer);
 }
 
+// Extend functionality when required
 void USART2_IRQHandler(void) { // from core/startup/startup_stm32f446retx.s
 	// echo
 	usart2_read_char();
