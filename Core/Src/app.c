@@ -60,6 +60,26 @@ void USART2_IRQHandler(void) { // from core/startup/startup_stm32f446retx.s
 	usart2_read_char();
 }
 
+void init_systick(void){
+	// Set to 1ms
+	SysTick->LOAD = 16000;
+	SysTick->VAL = 0;
+	SysTick->CTRL |= (1u << 2);
+	SysTick->CTRL |= (1u << 1);
+	SysTick->CTRL |= (1u << 0);
+}
+
+uint32_t SYSTICK_MILLISECONDS = 0;
+
+void SysTick_Handler(void) {
+	SYSTICK_MILLISECONDS += 1;
+}
+
+void delay_ms(uint32_t milliseconds) {
+	uint32_t start = SYSTICK_MILLISECONDS;
+	while((SYSTICK_MILLISECONDS - start) < milliseconds);
+}
+
 // PB9 TIM2_CH2 and PB10 TIM2_CH3, driving PWMA and PWMB
 
 // PB4, PB5, PB13, PB14 for AIN1, AIN2, BIN1, BIN2,
