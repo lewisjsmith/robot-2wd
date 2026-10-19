@@ -28,11 +28,6 @@
 #define _RCC_APB1ENR_TIM2EN (1u << 0)
 #define _RCC_APB1ENR_USART2EN (1u << 17)
 
-// Step 1
-#define GPIO_AFRX_MSK(pin) (3u << ((pin) * 4u))
-// Step 2
-//#define AFRX_MODE_
-
 typedef struct {
 	volatile uint32_t CR;
 	volatile uint32_t PLLCFGR;
