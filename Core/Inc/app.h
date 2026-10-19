@@ -9,28 +9,24 @@
 #define INC_APP_H_
 
 #include <stdint.h>
+#include "stm32f446xx.h"
 
 #define RCC_addr 	0x40023800
+#define GPIOA_addr 	0x40020000
 #define GPIOB_addr 	0x40020400
 #define USART2_addr	0x40004400
 #define TIM2_addr	0x40000000
 
 #define _RCC 	((volatile _RCC_struct*) RCC_addr)
+#define _GPIOA 	((volatile _GPIO_struct*) GPIOA_addr)
 #define _GPIOB 	((volatile _GPIO_struct*) GPIOB_addr)
 #define _USART2 ((volatile _USART_struct*) USART2_addr)
 #define _TIM2 	((volatile _TIM_struct*) TIM2_addr)
 
+#define _RCC_AHB1ENR_GPIOAEN (1u << 0)
 #define _RCC_AHB1ENR_GPIOBEN (1u << 1)
 #define _RCC_APB1ENR_TIM2EN (1u << 0)
 #define _RCC_APB1ENR_USART2EN (1u << 17)
-
-// Step 1
-#define GPIO_MODER_MSK(pin) (3u << ((pin) * 2u))
-// Step 2
-#define _GPIO_MODE_INPUT   0u
-#define _GPIO_MODE_OUTPUT  1u
-#define _GPIO_MODE_AF      2u
-#define _GPIO_MODE_ANALOG  3u
 
 // Step 1
 #define GPIO_AFRX_MSK(pin) (3u << ((pin) * 4u))
@@ -40,6 +36,7 @@
 typedef struct {
 	volatile uint32_t CR;
 	volatile uint32_t PLLCFGR;
+	volatile uint32_t CFGR;
 	volatile uint32_t CIR;
 	volatile uint32_t AHB1;
 	volatile uint32_t AHB2;
@@ -110,8 +107,10 @@ void init_tim2(void);
 void init_usart2(void);
 void init_systick(void);
 
-void write_char(char);
-void write_string(char*);
+void USART2_IRQHandler(void);
+void usart2_write_char(char);
+void usart2_write_string(char*);
+void usart2_read_char(void);
 
 void SysTick_Handler(void);
 void delay_ms(uint32_t);
