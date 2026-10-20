@@ -103,7 +103,14 @@ void init_usart2(void);
 void init_systick(void);
 
 void init_mdriver_gpiob(void);
-void test_motor_forwards(void);
+void test_motor_CCW(void);
+void test_motor_CW(void);
+void test_motor_BRAKE(void);
+void test_motor_OFF(void);
+void test_motor_FW(void);
+void test_motor_BW(void);
+void test_motor_LEFT(void);
+void test_motor_RIGHT(void);
 
 void USART2_IRQHandler(void);
 void usart2_write_char(char);

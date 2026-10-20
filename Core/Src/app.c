@@ -138,6 +138,8 @@ void TIM2_IRQHandler(void){
 	// Do something
 };
 
+// Refactor needed below
+
 void init_mdriver_gpiob(void) {
 	// PB4
 	_GPIOB->MODER &= ~(3u << 8);
@@ -160,20 +162,91 @@ void init_mdriver_gpiob(void) {
 	_GPIOB->MODER |= (1u << 16);
 }
 
-void test_motor_forwards(void) {
-	_GPIOB->BSRR |= (1u << 8); // STBY
-//	_GPIOB->BSRR |= (1u << 24);
+// Encoder mode for timers, increment or decrement a count, poll CNT at a set time period to derive speed
+void init_encoder_gpio(void){
 
-	_GPIOB->BSRR |= (1u << 4); // AIN1 high
-//	_GPIOB->BSRR |= (1u << 20); // AIN1 reset
+};
 
-//	_GPIOB->BSRR |= (1u << 5);
-	_GPIOB->BSRR |= (1u << 21); // AIN2 reset
+// 2x CCW for forwards
+void test_motor_FW(void) {
+	_TIM2->CCR2 = 400 - 1;
+	_TIM2->CCR3 = 400 - 1;
 
-	// PB4, PB5, PB8, PB9
+	_GPIOB->BSRR |= (1u << 8);
+
+	_GPIOB->BSRR |= (1u << 20);
+	_GPIOB->BSRR |= (1u << 5);
+
+	_GPIOB->BSRR |= (1u << 13);
+	_GPIOB->BSRR |= (1u << 30);
 }
 
-void init_encoder_gpio(void){};
+void test_motor_BW(void) {
+	_TIM2->CCR2 = 400 - 1;
+	_TIM2->CCR3 = 400 - 1;
+
+	_GPIOB->BSRR |= (1u << 8);
+
+	_GPIOB->BSRR |= (1u << 4);
+	_GPIOB->BSRR |= (1u << 21);
+
+	_GPIOB->BSRR |= (1u << 29);
+	_GPIOB->BSRR |= (1u << 14);
+}
+
+// Requires memory of the previous speed
+void test_motor_LEFT(void) {
+	_TIM2->CCR2 = 0;
+	_TIM2->CCR3 = 400 - 1;
+
+	_GPIOB->BSRR |= (1u << 8);
+
+	_GPIOB->BSRR |= (1u << 4);
+	_GPIOB->BSRR |= (1u << 21);
+
+	_GPIOB->BSRR |= (1u << 29);
+	_GPIOB->BSRR |= (1u << 14);
+}
+
+void test_motor_RIGHT(void) {
+	_TIM2->CCR2 = 400 - 1;
+	_TIM2->CCR3 = 0;
+
+	_GPIOB->BSRR |= (1u << 8);
+
+	_GPIOB->BSRR |= (1u << 4);
+	_GPIOB->BSRR |= (1u << 21);
+
+	_GPIOB->BSRR |= (1u << 29);
+	_GPIOB->BSRR |= (1u << 14);
+}
+
+void test_motor_CCW(void) {
+	_GPIOB->BSRR |= (1u << 8); // STBY
+
+	_GPIOB->BSRR |= (1u << 4); // AIN1 high
+	_GPIOB->BSRR |= (1u << 21); // AIN2 low
+}
+
+void test_motor_CW(void) {
+	_GPIOB->BSRR |= (1u << 8);
+	_GPIOB->BSRR |= (1u << 20);
+	_GPIOB->BSRR |= (1u << 5);
+}
+
+void test_motor_BRAKE(void) {
+	_GPIOB->BSRR |= (1u << 8);
+	_GPIOB->BSRR |= (1u << 20);
+	_GPIOB->BSRR |= (1u << 21);
+}
+
+void test_motor_OFF(void) {
+	_GPIOB->BSRR |= (1u << 24);
+	_GPIOB->BSRR |= (1u << 20);
+	_GPIOB->BSRR |= (1u << 21);
+}
+
+
 
 // PB9 TIM2_CH2 and PB10 TIM2_CH3, driving PWMA and PWMB
 
