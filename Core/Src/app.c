@@ -7,12 +7,19 @@
 
 #include <stdio.h>
 
+#include <stdbool.h>
+#include <math.h>
+
 #include "app.h"
+
+#define PI 3.14159265358979323846
+#define WHEEL_DIAMETER 0.064
 
 void init_rcc(void) {
 	_RCC->AHB1ENR |= _RCC_AHB1ENR_GPIOAEN;
 	_RCC->AHB1ENR |= _RCC_AHB1ENR_GPIOBEN;
 	_RCC->APB1ENR |= _RCC_APB1ENR_TIM2EN;
+	_RCC->APB1ENR |= _RCC_APB1ENR_TIM3EN;
 	_RCC->APB1ENR |= _RCC_APB1ENR_USART2EN;
 };
 
@@ -51,6 +58,8 @@ void usart2_write_string(char* str) {
 	}
 }
 
+
+bool motor_on = false;
 // Extend to strings when required
 void usart2_read_char(void) {
 	while(!(_USART2->SR & (1u << 5)));
@@ -58,8 +67,19 @@ void usart2_read_char(void) {
 
 	// echo
 	char buffer[100];
-	snprintf(buffer, sizeof(buffer), "Received: %c \r\n", c);
+	snprintf(buffer, sizeof(buffer), "Received: %u \r\n", c);
  	usart2_write_string(buffer);
+
+ 	if(c == 32) {
+ 		if(motor_on) {
+ 			test_motor_BRAKE();
+ 			motor_on = false;
+ 		} else {
+ 			test_motor_FW();
+ 			motor_on = true;
+ 		}
+
+ 	}
 }
 
 // Extend functionality when required
@@ -163,8 +183,61 @@ void init_mdriver_gpiob(void) {
 }
 
 // Encoder mode for timers, increment or decrement a count, poll CNT at a set time period to derive speed
+// Debouncing may need to be considered, noise reduction too
+// PA6 CH1, PA7 CH2 on TIM3, AF2
 void init_encoder_gpio(void){
+	_TIM3->CCMR1 &= ~(3u << 0);
+	_TIM3->CCMR1 |= (1u << 0); // Channel 1 input connect to capture/compare 1, IC1
+	_TIM3->CCMR1 &= ~(3u << 8);
+	_TIM3->CCMR1 |= (1u << 8); // Channel 2 input connect to capture/compare 1, IC2
 
+	_TIM3->CCMR1 &= ~(3u << 2); // No prescaler, each edge
+	_TIM3->CCMR1 &= ~(15u << 4);
+	_TIM3->CCMR1 |= (3u << 4); // Input capture filter set as 8 counts at source frequency, to use f_DTS, it is scaled by CR1 CKD bits
+
+	_TIM3->CCMR1 &= ~(3u << 10); // No prescaler, each edge
+	_TIM3->CCMR1 &= ~(15u << 12);
+	_TIM3->CCMR1 |= (3u << 12); // Input capture filter set as 8 counts at source frequency, to use f_DTS, it is scaled by CR1 CKD bits
+
+//	•CC2S= ‘01’ (TIMx_CCMR1 register, TI2FP2 mapped on TI2)
+//	•CC1P= ‘0’, CC1NP = ‘0’, IC1F =’0000’ (TIMx_CCER register, TI1FP1 noninverted,
+//	TI1FP1=TI1)
+//	•CC2P= ‘0’, CC2NP = ‘0’, IC2F =’0000’ (TIMx_CCER register, TI2FP2 noninverted,
+//	TI2FP2=TI2)
+
+//	8 pulses per round, up to 960–1920 pulses per output revolution depending on counting mode
+
+	_TIM3->CCER |= (1u << 0);
+	_TIM3->CCER |= (1u << 4);
+
+	_TIM3->SMCR &= ~(7u << 0);
+	_TIM3->SMCR |= (3u << 0); // Encoder Mode 3, both rising and falling edges trigger counts depending on the others level
+
+	// Select TI1 and TI2 polarity using CC1p and CC2p bits in CCER
+	// TI1FP1 and TI2FP2 refer to TI1, TI2 after the input filters and polarity selection
+	// CCER needs CC1NP and CC1P setting up, CC1E for input
+	// Counts to/from ARR depending on direction
+
+	// TI1FP1 then TI2FP2 schema
+	// down up == rising
+	// up down == falling
+
+//	_TIM3->CR1 |= (1u << 7); // ARPE
+
+	_TIM3->EGR = (1u << 0);
+	_TIM3->SR = ~(1u << 0);
+
+	_TIM3->CR1 |= (1u << 0); // CEN
+
+	_GPIOA->MODER &= ~(3u << 12);
+	_GPIOA->MODER |= (2u << 12);
+	_GPIOA->AFRL &= ~(15u << 24);
+	_GPIOA->AFRL |= (2u << 24);
+
+	_GPIOA->MODER &= ~(3u << 14);
+	_GPIOA->MODER |= (2u << 14);
+	_GPIOA->AFRL &= ~(15u << 28);
+	_GPIOA->AFRL |= (2u << 28);
 };
 
 // 2x CCW for forwards
@@ -246,6 +319,13 @@ void test_motor_OFF(void) {
 	_GPIOB->BSRR |= (1u << 21);
 }
 
+float get_speed(uint16_t* prev, uint32_t period_ms) {
+	uint16_t curr = _TIM3->CNT;
+	int16_t diff = curr - *prev;
+	float speed = (((WHEEL_DIAMETER * PI)/3840) * diff)/(period_ms / 1000.0);
+	*prev = curr;
+	return speed;
+}
 
 
 // PB9 TIM2_CH2 and PB10 TIM2_CH3, driving PWMA and PWMB

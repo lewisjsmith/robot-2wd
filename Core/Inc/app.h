@@ -16,16 +16,19 @@
 #define GPIOB_addr 	0x40020400
 #define USART2_addr	0x40004400
 #define TIM2_addr	0x40000000
+#define TIM3_addr 	0x40000400
 
 #define _RCC 	((volatile _RCC_struct*) RCC_addr)
 #define _GPIOA 	((volatile _GPIO_struct*) GPIOA_addr)
 #define _GPIOB 	((volatile _GPIO_struct*) GPIOB_addr)
 #define _USART2 ((volatile _USART_struct*) USART2_addr)
 #define _TIM2 	((volatile _TIM_struct*) TIM2_addr)
+#define _TIM3 	((volatile _TIM_struct*) TIM3_addr)
 
 #define _RCC_AHB1ENR_GPIOAEN (1u << 0)
 #define _RCC_AHB1ENR_GPIOBEN (1u << 1)
 #define _RCC_APB1ENR_TIM2EN (1u << 0)
+#define _RCC_APB1ENR_TIM3EN (1u << 1)
 #define _RCC_APB1ENR_USART2EN (1u << 17)
 
 typedef struct {
@@ -111,6 +114,8 @@ void test_motor_FW(void);
 void test_motor_BW(void);
 void test_motor_LEFT(void);
 void test_motor_RIGHT(void);
+void init_encoder_gpio(void);
+float get_speed(uint16_t*, uint32_t);
 
 void USART2_IRQHandler(void);
 void usart2_write_char(char);
