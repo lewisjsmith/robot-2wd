@@ -159,9 +159,8 @@ void drive_stop(void) {
 	set_duty(&_TIM2->ARR, &_TIM2->CCR3, 0);
 }
 
-// This doesn't work, may need a pull-up, down or open-drain configuration
 void drive_disconnect(void) {
-	_GPIOB->BSRR &= ~(1u << 8); // STBY
+	_GPIOB->BSRR |= (1u << 24); // STBY
 }
 
 float get_speed(uint16_t* prev, uint32_t period_ms) {
