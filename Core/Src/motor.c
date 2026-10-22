@@ -7,9 +7,11 @@
 
 // Refactor needed below
 
+#include <stdio.h>
 #include <stdint.h>
 
 #include "motor.h"
+#include "usart2.h"
 
 #define PI 3.14159265358979323846
 #define WHEEL_DIAMETER 0.064
@@ -163,12 +165,40 @@ void drive_disconnect(void) {
 	_GPIOB->BSRR |= (1u << 24); // STBY
 }
 
-float get_speed(uint16_t* prev, uint32_t period_ms) {
-	uint16_t curr = _TIM3->CNT;
-	int16_t diff = curr - *prev;
+// Fix the double read, need single-source-of-truth for count
+float get_speed_from_encoder(volatile uint32_t* prev_cnt, volatile uint32_t* curr_cnt, uint32_t period_ms) {
+	uint16_t prev = *prev_cnt;
+	uint16_t curr = *curr_cnt;
+	int16_t diff = curr - prev;
 	float speed = (((WHEEL_DIAMETER * PI)/3840) * diff)/(period_ms / 1000.0);
-	*prev = curr;
 	return speed;
+}
+
+void get_speed_from_encoder_callback(void* context) {
+	SpeedContext* sc = (SpeedContext*)context;
+	float speed = get_speed_from_encoder(
+			sc->prev_cnt,
+			*(sc->curr_cnt),
+			*(sc->period_ms));
+	*(sc->speed) = speed;
+	*(sc->prev_cnt) = **(sc->curr_cnt);
+}
+
+// Needs pairing with a suitable delay
+void usart2_print_speed(volatile float speed) {
+	char buffer[100];
+	snprintf(
+		buffer,
+		sizeof(buffer),
+		"Speed: %f m/s \r\n",
+		speed);
+	usart2_write_string(buffer);
+}
+
+void usart2_print_speed_callback(void* context)
+{
+    PrintContext* pc = (PrintContext*)context;
+    usart2_print_speed(*(pc->speed));
 }
 
 #define WASD_FORWARD 		119

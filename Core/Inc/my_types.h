@@ -98,5 +98,15 @@ typedef struct {
 	volatile uint32_t GTPR;
 } _USART_struct;
 
+typedef struct {
+	volatile uint32_t* 	WHEEL_LEFT_ENCODER_COUNT_ADDR;
+	volatile uint32_t 	WHEEL_LEFT_ENCODER_COUNT_PREV;
+	uint32_t			SPEED_SAMPLE_PERIOD_MS;
+	uint32_t			SPEED_SAMPLE_PRINT_PERIOD_MS;
+
+	// Later untangle into speed per wheel and body
+	volatile float		SPEED;
+} State;
+
 
 #endif /* INC_MY_TYPES_H_ */

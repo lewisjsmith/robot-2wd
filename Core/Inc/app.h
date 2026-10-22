@@ -18,4 +18,9 @@
 #include "systick.h"
 #include "motor.h"
 
+#define WHEEL_LEFT_TIM3_CNT ((uint32_t*) 0x40000424)
+
+State init_state(State*);
+float pid(float);
+
 #endif /* INC_APP_H_ */
