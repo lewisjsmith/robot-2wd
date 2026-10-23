@@ -103,9 +103,18 @@ typedef struct {
 	volatile uint32_t 	WHEEL_LEFT_ENCODER_COUNT_PREV;
 	uint32_t			SPEED_SAMPLE_PERIOD_MS;
 	uint32_t			SPEED_SAMPLE_PRINT_PERIOD_MS;
-
 	// Later untangle into speed per wheel and body
 	volatile float		SPEED;
+
+	// PID
+	float 				SPEED_DESIRED;
+	volatile uint32_t	PID_PREV_MS;
+	uint32_t 			PID_SAMPLE_PERIOD_MS;
+	volatile float 		PID_INTEGRAL;
+	float 				PID_PREV_ERROR;
+	float 				Kp;
+	float 				Kd;
+	float				Ki;
 } State;
 
 

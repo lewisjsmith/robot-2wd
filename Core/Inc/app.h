@@ -20,7 +20,13 @@
 
 #define WHEEL_LEFT_TIM3_CNT ((uint32_t*) 0x40000424)
 
-State init_state(State*);
-float pid(float);
+void init_state(State*);
+
+typedef struct {
+	State* state;
+} PidContext;
+
+void pid(volatile State* state);
+void pid_callback(void* context);
 
 #endif /* INC_APP_H_ */
