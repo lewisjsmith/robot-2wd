@@ -102,26 +102,25 @@ typedef struct {
 } _USART_struct;
 
 typedef struct {
-	volatile uint32_t* 	WHEEL_LEFT_ENCODER_COUNT_ADDR;
-	volatile uint32_t 	WHEEL_LEFT_ENCODER_COUNT_PREV;
-	volatile float		WHEEL_LEFT_SPEED;
+	volatile uint32_t* 	WHEEL_ENCODER_COUNT_ADDR;
+	volatile uint32_t* 	WHEEL_DUTY_ADDR;
+	volatile uint32_t 	WHEEL_ENCODER_COUNT_PREV;
+	volatile float		WHEEL_SPEED;
+	float 				SPEED_DESIRED;
+	uint32_t 			SAMPLE_PERIOD_MS;
+	volatile uint32_t	PREV_SAMPLE_TICK_MS;
+	volatile float 		INTEGRAL;
+	float 				PREV_ERROR;
+	float 				Kp;
+	float			 	Ki;
+	float 				Kd;
+} PidState;
 
-	volatile uint32_t* 	WHEEL_RIGHT_ENCODER_COUNT_ADDR;
-	volatile uint32_t 	WHEEL_RIGHT_ENCODER_COUNT_PREV;
-	volatile float		WHEEL_RIGHT_SPEED;
-
+typedef struct {
+	PidState			PID_LEFT;
+	PidState			PID_RIGHT;
 	uint32_t			SPEED_SAMPLE_PERIOD_MS;
 	uint32_t			SPEED_SAMPLE_PRINT_PERIOD_MS;
-
-	// PID
-	float 				SPEED_DESIRED;
-	volatile uint32_t	PID_PREV_MS;
-	uint32_t 			PID_SAMPLE_PERIOD_MS;
-	volatile float 		PID_INTEGRAL;
-	float 				PID_PREV_ERROR;
-	float 				Kp;
-	float 				Kd;
-	float				Ki;
 } State;
 
 

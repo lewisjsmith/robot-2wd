@@ -41,4 +41,6 @@ typedef struct {
 void usart2_print_speed(volatile float);
 void usart2_print_speed_callback(void* context);
 
+void init_share_state(State*);
+
 #endif /* INC_MOTOR_H_ */

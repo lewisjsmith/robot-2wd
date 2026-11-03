@@ -24,12 +24,11 @@
 void init_state(State*);
 
 typedef struct {
-	State* state;
+	PidState* state;
 } PidContext;
 
-void pid(volatile State* state, volatile float, volatile uint32_t*);
-void pid_callback_left(void* context);
-void pid_callback_right(void* context);
+void pid(volatile PidState* state);
+void pid_callback(void* context);
 
 // To-do:
 // Split pid fn parameters, split separate pid state from overall state

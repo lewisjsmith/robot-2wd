@@ -12,9 +12,16 @@
 
 #include "motor.h"
 #include "usart2.h"
+#include "my_types.h"
 
 #define PI 3.14159265358979323846
 #define WHEEL_DIAMETER 0.064
+
+State* state;
+
+void init_share_state(State* st) {
+	state = st;
+}
 
 void init_mdriver_gpiob(void) {
 	// PB4 as output
@@ -157,8 +164,8 @@ void drive_forwards(void) {
 	set_wheel_direction(WHEEL_LEFT, DIR_FORWARD);
 	set_wheel_direction(WHEEL_RIGHT, DIR_FORWARD);
 
-	set_duty(&_TIM2->ARR, &_TIM2->CCR2, 30);
-	set_duty(&_TIM2->ARR, &_TIM2->CCR3, 30);
+	state->PID_LEFT.SPEED_DESIRED = 0.15f;
+	state->PID_RIGHT.SPEED_DESIRED = 0.15f;
 }
 
 void drive_backwards(void) {
@@ -167,8 +174,8 @@ void drive_backwards(void) {
 	set_wheel_direction(WHEEL_LEFT, DIR_BACKWARD);
 	set_wheel_direction(WHEEL_RIGHT, DIR_BACKWARD);
 
-	set_duty(&_TIM2->ARR, &_TIM2->CCR2, 30);
-	set_duty(&_TIM2->ARR, &_TIM2->CCR3, 30);
+	state->PID_LEFT.SPEED_DESIRED = 0.15f;
+	state->PID_RIGHT.SPEED_DESIRED = 0.15f;
 }
 
 void drive_left(void) {
@@ -177,8 +184,8 @@ void drive_left(void) {
 	set_wheel_direction(WHEEL_LEFT, DIR_FORWARD);
 	set_wheel_direction(WHEEL_RIGHT, DIR_FORWARD);
 
-	set_duty(&_TIM2->ARR, &_TIM2->CCR2, 0);
-	set_duty(&_TIM2->ARR, &_TIM2->CCR3, 30);
+	state->PID_LEFT.SPEED_DESIRED = 0.0f;
+	state->PID_RIGHT.SPEED_DESIRED = 0.15f;
 }
 
 void drive_right(void) {
@@ -187,8 +194,8 @@ void drive_right(void) {
 	set_wheel_direction(WHEEL_LEFT, DIR_FORWARD);
 	set_wheel_direction(WHEEL_RIGHT, DIR_FORWARD);
 
-	set_duty(&_TIM2->ARR, &_TIM2->CCR2, 30);
-	set_duty(&_TIM2->ARR, &_TIM2->CCR3, 0);
+	state->PID_LEFT.SPEED_DESIRED = 0.15f;
+	state->PID_RIGHT.SPEED_DESIRED = 0.0f;
 }
 
 void drive_stop(void) {
@@ -198,7 +205,58 @@ void drive_stop(void) {
 
 void drive_disconnect(void) {
 	_GPIOB->BSRR |= (1u << 24); // STBY
+	state->PID_LEFT.SPEED_DESIRED = 0.0f;
+	state->PID_RIGHT.SPEED_DESIRED = 0.0f;
 }
+
+//void drive_forwards(void) {
+//	_GPIOB->BSRR |= (1u << 8); // STBY
+//
+//	set_wheel_direction(WHEEL_LEFT, DIR_FORWARD);
+//	set_wheel_direction(WHEEL_RIGHT, DIR_FORWARD);
+//
+//	set_duty(&_TIM2->ARR, &_TIM2->CCR2, 30);
+//	set_duty(&_TIM2->ARR, &_TIM2->CCR3, 30);
+//}
+//
+//void drive_backwards(void) {
+//	_GPIOB->BSRR |= (1u << 8); // STBY
+//
+//	set_wheel_direction(WHEEL_LEFT, DIR_BACKWARD);
+//	set_wheel_direction(WHEEL_RIGHT, DIR_BACKWARD);
+//
+//	set_duty(&_TIM2->ARR, &_TIM2->CCR2, 30);
+//	set_duty(&_TIM2->ARR, &_TIM2->CCR3, 30);
+//}
+//
+//void drive_left(void) {
+//	_GPIOB->BSRR |= (1u << 8); // STBY
+//
+//	set_wheel_direction(WHEEL_LEFT, DIR_FORWARD);
+//	set_wheel_direction(WHEEL_RIGHT, DIR_FORWARD);
+//
+//	set_duty(&_TIM2->ARR, &_TIM2->CCR2, 0);
+//	set_duty(&_TIM2->ARR, &_TIM2->CCR3, 30);
+//}
+//
+//void drive_right(void) {
+//	_GPIOB->BSRR |= (1u << 8); // STBY
+//
+//	set_wheel_direction(WHEEL_LEFT, DIR_FORWARD);
+//	set_wheel_direction(WHEEL_RIGHT, DIR_FORWARD);
+//
+//	set_duty(&_TIM2->ARR, &_TIM2->CCR2, 30);
+//	set_duty(&_TIM2->ARR, &_TIM2->CCR3, 0);
+//}
+//
+//void drive_stop(void) {
+//	set_duty(&_TIM2->ARR, &_TIM2->CCR2, 0);
+//	set_duty(&_TIM2->ARR, &_TIM2->CCR3, 0);
+//}
+
+//void drive_disconnect(void) {
+//	_GPIOB->BSRR |= (1u << 24); // STBY
+//}
 
 // Fix the double read, need single-source-of-truth for count
 float get_speed_from_encoder(volatile uint32_t* prev_cnt, volatile uint32_t* curr_cnt, uint32_t period_ms) {
