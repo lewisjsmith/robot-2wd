@@ -170,6 +170,10 @@ float get_speed_from_encoder(volatile uint32_t* prev_cnt, volatile uint32_t* cur
 	uint16_t prev = *prev_cnt;
 	uint16_t curr = *curr_cnt;
 	int16_t diff = curr - prev;
+
+	// Added for PID in reverse but loses direction, separately update encoder difference and pull from that?
+	if(diff < 0) diff *= -1;
+
 	float speed = (((WHEEL_DIAMETER * PI)/3840) * diff)/(period_ms / 1000.0);
 	return speed;
 }
