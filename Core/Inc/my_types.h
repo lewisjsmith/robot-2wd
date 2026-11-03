@@ -14,6 +14,7 @@
 #define USART2_addr	0x40004400
 #define TIM2_addr	0x40000000
 #define TIM3_addr 	0x40000400
+#define TIM4_addr 	0x40000800
 
 #define _RCC 	((volatile _RCC_struct*) RCC_addr)
 #define _GPIOA 	((volatile _GPIO_struct*) GPIOA_addr)
@@ -21,12 +22,14 @@
 #define _USART2 ((volatile _USART_struct*) USART2_addr)
 #define _TIM2 	((volatile _TIM_struct*) TIM2_addr)
 #define _TIM3 	((volatile _TIM_struct*) TIM3_addr)
+#define _TIM4 	((volatile _TIM_struct*) TIM4_addr)
 
 #define _RCC_AHB1ENR_GPIOAEN (1u << 0)
 #define _RCC_AHB1ENR_GPIOBEN (1u << 1)
 
 #define _RCC_APB1ENR_TIM2EN (1u << 0)
 #define _RCC_APB1ENR_TIM3EN (1u << 1)
+#define _RCC_APB1ENR_TIM4EN (1u << 2)
 
 #define _RCC_APB1ENR_USART2EN (1u << 17)
 
@@ -101,10 +104,14 @@ typedef struct {
 typedef struct {
 	volatile uint32_t* 	WHEEL_LEFT_ENCODER_COUNT_ADDR;
 	volatile uint32_t 	WHEEL_LEFT_ENCODER_COUNT_PREV;
+	volatile float		WHEEL_LEFT_SPEED;
+
+	volatile uint32_t* 	WHEEL_RIGHT_ENCODER_COUNT_ADDR;
+	volatile uint32_t 	WHEEL_RIGHT_ENCODER_COUNT_PREV;
+	volatile float		WHEEL_RIGHT_SPEED;
+
 	uint32_t			SPEED_SAMPLE_PERIOD_MS;
 	uint32_t			SPEED_SAMPLE_PRINT_PERIOD_MS;
-	// Later untangle into speed per wheel and body
-	volatile float		SPEED;
 
 	// PID
 	float 				SPEED_DESIRED;

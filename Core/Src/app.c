@@ -13,14 +13,18 @@
 #include "app.h"
 
 void init_state(State* state) {
+	// Change
 	state->WHEEL_LEFT_ENCODER_COUNT_ADDR = WHEEL_LEFT_TIM3_CNT;
 	state->WHEEL_LEFT_ENCODER_COUNT_PREV = 0;
-	state->SPEED = 0.0f;
+	state->WHEEL_LEFT_SPEED = 0.0f;
+	state->WHEEL_RIGHT_ENCODER_COUNT_ADDR = WHEEL_RIGHT_TIM4_CNT;
+	state->WHEEL_RIGHT_ENCODER_COUNT_PREV = 0;
+	state->WHEEL_RIGHT_SPEED = 0.0f;
 	state->SPEED_SAMPLE_PERIOD_MS = 4;
 	state->SPEED_SAMPLE_PRINT_PERIOD_MS = 100;
 
 	// PID, split into another object?
-	state->SPEED_DESIRED = 0.17f;
+	state->SPEED_DESIRED = 0.2f;
 	state->PID_PREV_MS = SYSTICK_MILLISECONDS;
 	state->PID_PREV_ERROR = 0.0f;
 	state->PID_SAMPLE_PERIOD_MS = 4;
@@ -34,19 +38,24 @@ void init_state(State* state) {
 // Either with a scheduler or on the main loop, run one loop of a PID
 // Repeat
 
-void pid_callback(void* context) {
+void pid_callback_left(void* context) {
 	PidContext* pc = (PidContext*)context;
-	pid(pc->state);
+	pid(pc->state, pc->state->WHEEL_LEFT_SPEED, &_TIM2->CCR2);
+}
+
+void pid_callback_right(void* context) {
+	PidContext* pc = (PidContext*)context;
+	pid(pc->state, pc->state->WHEEL_RIGHT_SPEED, &_TIM2->CCR3);
 }
 
 // Note that PWM below 10 isn't enough to turn the wheel, may need to adjust for this
-void pid(volatile State* state) {
+void pid(volatile State* state, volatile float wheel_speed, volatile uint32_t* ccr_addr) {
 	uint32_t now = SYSTICK_MILLISECONDS;
 	uint32_t prev = state->PID_PREV_MS;
 	float dt = (now - prev)/1000.0f;
 	if(dt == 0.0f) return;
 
-	float error = (state->SPEED_DESIRED - state->SPEED)/0.3f;
+	float error = (state->SPEED_DESIRED - wheel_speed)/0.3f;
 
 	float error_p = error * state->Kp;
 	float error_d = ((error - state->PID_PREV_ERROR)/dt) * state->Kd;
@@ -64,7 +73,7 @@ void pid(volatile State* state) {
 	else if(error_sum < 0) error_sum = 0.0;
 
 	// TODO: Join get_speed and PID
-	set_duty(&_TIM2->ARR, &_TIM2->CCR2, (int)error_sum);
+	set_duty(&_TIM2->ARR, ccr_addr, (int)error_sum);
 
 	state->PID_PREV_MS = now;
 	state->PID_PREV_ERROR = error;

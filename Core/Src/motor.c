@@ -73,6 +73,41 @@ void init_encoder_gpio(void){
 	_GPIOA->MODER |= (2u << 14);
 	_GPIOA->AFRL &= ~(15u << 28);
 	_GPIOA->AFRL |= (2u << 28);
+
+	//
+
+	_TIM4->CCMR1 &= ~(3u << 0);
+	_TIM4->CCMR1 |= (1u << 0); // Input IC1, mapped to TI1 (Timer channel 1)
+	_TIM4->CCMR1 &= ~(3u << 8);
+	_TIM4->CCMR1 |= (1u << 8); // Input IC2, mapped to TI2 (Timer channel 1)
+
+	_TIM4->CCMR1 &= ~(3u << 2); // Capture on each edge
+	_TIM4->CCMR1 &= ~(15u << 4);
+	_TIM4->CCMR1 |= (3u << 4); // Input capture filter, 8 consecutive events to validate a transition, taken at source frequency
+
+	_TIM4->CCMR1 &= ~(3u << 10); // Capture on each edge
+	_TIM4->CCMR1 &= ~(15u << 12);
+	_TIM4->CCMR1 |= (3u << 12); // Input capture filter, 8 consecutive events to validate a transition, taken at source frequency
+
+	_TIM4->SMCR &= ~(7u << 0);
+	_TIM4->SMCR |= (3u << 0); // Encoder Mode 3, both rising and falling edges trigger counts depending on the others level
+
+	_TIM4->EGR = (1u << 0);
+	_TIM4->SR = ~(1u << 0);
+
+	_TIM4->CR1 |= (1u << 0); // CEN
+
+	 // PB6 Channel 1, AF2
+	_GPIOB->MODER &= ~(3u << 12);
+	_GPIOB->MODER |= (2u << 12);
+	_GPIOB->AFRL &= ~(15u << 24);
+	_GPIOB->AFRL |= (2u << 24);
+
+	// PB7 Channel 2, AF2
+	_GPIOB->MODER &= ~(3u << 14);
+	_GPIOB->MODER |= (2u << 14);
+	_GPIOB->AFRL &= ~(15u << 28);
+	_GPIOB->AFRL |= (2u << 28);
 };
 
 // PID may need floating point precision for percentage
@@ -202,7 +237,22 @@ void usart2_print_speed(volatile float speed) {
 void usart2_print_speed_callback(void* context)
 {
     PrintContext* pc = (PrintContext*)context;
-    usart2_print_speed(*(pc->speed));
+
+	char buffer_l[100];
+	snprintf(
+		buffer_l,
+		sizeof(buffer_l),
+		"Left  ");
+	usart2_write_string(buffer_l);
+    usart2_print_speed(*(pc->WHEEL_LEFT_SPEED));
+
+	char buffer_r[100];
+	snprintf(
+		buffer_r,
+		sizeof(buffer_r),
+		"Right ");
+	usart2_write_string(buffer_r);
+    usart2_print_speed(*(pc->WHEEL_RIGHT_SPEED));
 }
 
 #define WASD_FORWARD 		119

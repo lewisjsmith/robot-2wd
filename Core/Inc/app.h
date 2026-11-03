@@ -19,6 +19,7 @@
 #include "motor.h"
 
 #define WHEEL_LEFT_TIM3_CNT ((uint32_t*) 0x40000424)
+#define WHEEL_RIGHT_TIM4_CNT ((uint32_t*) 0x40000824)
 
 void init_state(State*);
 
@@ -26,7 +27,14 @@ typedef struct {
 	State* state;
 } PidContext;
 
-void pid(volatile State* state);
-void pid_callback(void* context);
+void pid(volatile State* state, volatile float, volatile uint32_t*);
+void pid_callback_left(void* context);
+void pid_callback_right(void* context);
+
+// To-do:
+// Split pid fn parameters, split separate pid state from overall state
+// Set desired speeds for turning to be enacted by PID instead of manual PWM
+// Better printing telemetry
+// Remove constants to separate file named constants
 
 #endif /* INC_APP_H_ */

@@ -34,7 +34,8 @@ void get_speed_from_encoder_callback(void* context);
 void wasd_control(char);
 
 typedef struct {
-	volatile float* speed;
+	volatile float* WHEEL_LEFT_SPEED;
+	volatile float* WHEEL_RIGHT_SPEED;
 } PrintContext;
 
 void usart2_print_speed(volatile float);
