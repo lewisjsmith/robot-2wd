@@ -17,14 +17,6 @@
 #define PI 3.14159265358979323846
 #define WHEEL_DIAMETER 0.064
 
-State* state;
-
-void init_share_state(State* st) {
-	state = st;
-}
-
-// Needs STBY somewhere
-
 void init_motor_driver_gpio(Motor* motor) {
 	motor->MOTOR_OUT_1_GPIO->MODER &= ~(3u << (motor->MOTOR_OUT_1_GPIO_PIN * 2));
 	motor->MOTOR_OUT_1_GPIO->MODER |= (1u << (motor->MOTOR_OUT_1_GPIO_PIN * 2));
@@ -36,28 +28,6 @@ void init_motor_driver_gpio(Motor* motor) {
 	_GPIOB->MODER &= ~(3u << 16);
 	_GPIOB->MODER |= (1u << 16);
 }
-
-//void init_mdriver_gpiob(void) {
-//	// PB4 as output
-//	_GPIOB->MODER &= ~(3u << 8);
-//	_GPIOB->MODER |= (1u << 8);
-//
-//	// PB5 as output
-//	_GPIOB->MODER &= ~(3u << 10);
-//	_GPIOB->MODER |= (1u << 10);
-//
-//	// PB13 as output
-//	_GPIOB->MODER &= ~(3u << 26);
-//	_GPIOB->MODER |= (1u << 26);
-//
-//	// PB14 as output
-//	_GPIOB->MODER &= ~(3u << 28);
-//	_GPIOB->MODER |= (1u << 28);
-//
-//	// PB8 as output
-//	_GPIOB->MODER &= ~(3u << 16);
-//	_GPIOB->MODER |= (1u << 16);
-//}
 
 void init_encoder_gpio(Encoder* encoder){
 	encoder->MOTOR_ENCODER_TIMER->CCMR1 &= ~(3u << 0);
@@ -94,80 +64,6 @@ void init_encoder_gpio(Encoder* encoder){
 	encoder->MOTOR_ENCODER_CHANNEL_2_GPIO->AFRL |= (2u << (4 * encoder->MOTOR_ENCODER_CHANNEL_2_PIN));
 };
 
-// TI1FP1 and TI2FP2 refer to TI1, TI2 after the input filters and polarity selection
-// Counts to/from ARR depending on direction
-//void init_encoder_gpio(void){
-//	_TIM3->CCMR1 &= ~(3u << 0);
-//	_TIM3->CCMR1 |= (1u << 0); // Input IC1, mapped to TI1 (Timer channel 1)
-//	_TIM3->CCMR1 &= ~(3u << 8);
-//	_TIM3->CCMR1 |= (1u << 8); // Input IC2, mapped to TI2 (Timer channel 1)
-//
-//	_TIM3->CCMR1 &= ~(3u << 2); // Capture on each edge
-//	_TIM3->CCMR1 &= ~(15u << 4);
-//	_TIM3->CCMR1 |= (3u << 4); // Input capture filter, 8 consecutive events to validate a transition, taken at source frequency
-//
-//	_TIM3->CCMR1 &= ~(3u << 10); // Capture on each edge
-//	_TIM3->CCMR1 &= ~(15u << 12);
-//	_TIM3->CCMR1 |= (3u << 12); // Input capture filter, 8 consecutive events to validate a transition, taken at source frequency
-//
-//	_TIM3->SMCR &= ~(7u << 0);
-//	_TIM3->SMCR |= (3u << 0); // Encoder Mode 3, both rising and falling edges trigger counts depending on the others level
-//
-//	_TIM3->EGR = (1u << 0);
-//	_TIM3->SR = ~(1u << 0);
-//
-//	_TIM3->CR1 |= (1u << 0); // CEN
-//
-//	 // PA6 Channel 1, AF2
-//	_GPIOA->MODER &= ~(3u << 12);
-//	_GPIOA->MODER |= (2u << 12);
-//	_GPIOA->AFRL &= ~(15u << 24);
-//	_GPIOA->AFRL |= (2u << 24);
-//
-//	// PA7 Channel 2, AF2
-//	_GPIOA->MODER &= ~(3u << 14);
-//	_GPIOA->MODER |= (2u << 14);
-//	_GPIOA->AFRL &= ~(15u << 28);
-//	_GPIOA->AFRL |= (2u << 28);
-//
-//	//
-//
-//	_TIM4->CCMR1 &= ~(3u << 0);
-//	_TIM4->CCMR1 |= (1u << 0); // Input IC1, mapped to TI1 (Timer channel 1)
-//	_TIM4->CCMR1 &= ~(3u << 8);
-//	_TIM4->CCMR1 |= (1u << 8); // Input IC2, mapped to TI2 (Timer channel 1)
-//
-//	_TIM4->CCMR1 &= ~(3u << 2); // Capture on each edge
-//	_TIM4->CCMR1 &= ~(15u << 4);
-//	_TIM4->CCMR1 |= (3u << 4); // Input capture filter, 8 consecutive events to validate a transition, taken at source frequency
-//
-//	_TIM4->CCMR1 &= ~(3u << 10); // Capture on each edge
-//	_TIM4->CCMR1 &= ~(15u << 12);
-//	_TIM4->CCMR1 |= (3u << 12); // Input capture filter, 8 consecutive events to validate a transition, taken at source frequency
-//
-//	_TIM4->SMCR &= ~(7u << 0);
-//	_TIM4->SMCR |= (3u << 0); // Encoder Mode 3, both rising and falling edges trigger counts depending on the others level
-//
-//	_TIM4->EGR = (1u << 0);
-//	_TIM4->SR = ~(1u << 0);
-//
-//	_TIM4->CR1 |= (1u << 0); // CEN
-//
-//	 // PB6 Channel 1, AF2
-//	_GPIOB->MODER &= ~(3u << 12);
-//	_GPIOB->MODER |= (2u << 12);
-//	_GPIOB->AFRL &= ~(15u << 24);
-//	_GPIOB->AFRL |= (2u << 24);
-//
-//	// PB7 Channel 2, AF2
-//	_GPIOB->MODER &= ~(3u << 14);
-//	_GPIOB->MODER |= (2u << 14);
-//	_GPIOB->AFRL &= ~(15u << 28);
-//	_GPIOB->AFRL |= (2u << 28);
-//};
-
-// PID may need floating point precision for percentage
-// A feedback return value may be required
 void set_duty(volatile uint32_t* arr_addr, volatile uint32_t* duty_addr, uint8_t percentage) {
 	if(percentage > 100) return;
 	if(percentage == 0){
@@ -213,8 +109,8 @@ void drive_forwards(void) {
 	set_wheel_direction(WHEEL_LEFT, DIR_FORWARD);
 	set_wheel_direction(WHEEL_RIGHT, DIR_FORWARD);
 
-	state->PID_LEFT.SPEED_DESIRED = 0.15f;
-	state->PID_RIGHT.SPEED_DESIRED = 0.15f;
+	state.MOTOR_LEFT.SPEED_DESIRED = 0.15f;
+	state.MOTOR_RIGHT.SPEED_DESIRED = 0.15f;
 }
 
 void drive_backwards(void) {
@@ -223,8 +119,8 @@ void drive_backwards(void) {
 	set_wheel_direction(WHEEL_LEFT, DIR_BACKWARD);
 	set_wheel_direction(WHEEL_RIGHT, DIR_BACKWARD);
 
-	state->PID_LEFT.SPEED_DESIRED = 0.15f;
-	state->PID_RIGHT.SPEED_DESIRED = 0.15f;
+	state.MOTOR_LEFT.SPEED_DESIRED = 0.15f;
+	state.MOTOR_RIGHT.SPEED_DESIRED = 0.15f;
 }
 
 void drive_left(void) {
@@ -233,8 +129,8 @@ void drive_left(void) {
 	set_wheel_direction(WHEEL_LEFT, DIR_FORWARD);
 	set_wheel_direction(WHEEL_RIGHT, DIR_FORWARD);
 
-	state->PID_LEFT.SPEED_DESIRED = 0.0f;
-	state->PID_RIGHT.SPEED_DESIRED = 0.15f;
+	state.MOTOR_LEFT.SPEED_DESIRED = 0.0f;
+	state.MOTOR_RIGHT.SPEED_DESIRED = 0.15f;
 }
 
 void drive_right(void) {
@@ -243,8 +139,8 @@ void drive_right(void) {
 	set_wheel_direction(WHEEL_LEFT, DIR_FORWARD);
 	set_wheel_direction(WHEEL_RIGHT, DIR_FORWARD);
 
-	state->PID_LEFT.SPEED_DESIRED = 0.15f;
-	state->PID_RIGHT.SPEED_DESIRED = 0.0f;
+	state.MOTOR_LEFT.SPEED_DESIRED = 0.15f;
+	state.MOTOR_RIGHT.SPEED_DESIRED = 0.0f;
 }
 
 void drive_stop(void) {
@@ -254,8 +150,8 @@ void drive_stop(void) {
 
 void drive_disconnect(void) {
 	_GPIOB->BSRR |= (1u << 24); // STBY
-	state->PID_LEFT.SPEED_DESIRED = 0.0f;
-	state->PID_RIGHT.SPEED_DESIRED = 0.0f;
+	state.MOTOR_LEFT.SPEED_DESIRED = 0.0f;
+	state.MOTOR_RIGHT.SPEED_DESIRED = 0.0f;
 }
 
 //void drive_forwards(void) {
@@ -308,9 +204,9 @@ void drive_disconnect(void) {
 //}
 
 // Fix the double read, need single-source-of-truth for count
-float get_speed_from_encoder(volatile uint32_t* prev_cnt, volatile uint32_t* curr_cnt, uint32_t period_ms) {
-	uint16_t prev = *prev_cnt;
-	uint16_t curr = *curr_cnt;
+float get_speed_from_encoder(volatile uint32_t prev_cnt, volatile uint32_t curr_cnt, uint32_t period_ms) {
+	uint16_t prev = prev_cnt;
+	uint16_t curr = curr_cnt;
 	int16_t diff = curr - prev;
 
 	// Added for PID in reverse but loses direction, separately update encoder difference and pull from that?
@@ -322,12 +218,15 @@ float get_speed_from_encoder(volatile uint32_t* prev_cnt, volatile uint32_t* cur
 
 void get_speed_from_encoder_callback(void* context) {
 	SpeedContext* sc = (SpeedContext*)context;
+	volatile uint32_t prev = *sc->prev_cnt;
+	volatile uint32_t curr = *sc->curr_cnt;
+
 	float speed = get_speed_from_encoder(
-			sc->prev_cnt,
-			*(sc->curr_cnt),
-			*(sc->period_ms));
+			prev,
+			curr,
+			sc->period_ms);
 	*(sc->speed) = speed;
-	*(sc->prev_cnt) = **(sc->curr_cnt);
+	*(sc->prev_cnt) = curr;
 }
 
 // Needs pairing with a suitable delay

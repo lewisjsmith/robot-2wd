@@ -10,27 +10,10 @@
 
 #include "my_types.h"
 
-typedef struct {
-	volatile _TIM_struct* MOTOR_ENCODER_TIMER;
-	volatile _GPIO_struct* MOTOR_ENCODER_CHANNEL_1_GPIO;
-	uint8_t MOTOR_ENCODER_CHANNEL_1_PIN;
-	volatile _GPIO_struct* MOTOR_ENCODER_CHANNEL_2_GPIO;
-	uint8_t MOTOR_ENCODER_CHANNEL_2_PIN;
-} Encoder;
-
-typedef struct {
-	volatile _GPIO_struct* MOTOR_OUT_1_GPIO;
-	uint8_t MOTOR_OUT_1_GPIO_PIN;
-	volatile _GPIO_struct* MOTOR_OUT_2_GPIO;
-	uint8_t MOTOR_OUT_2_GPIO_PIN;
-	// ------------------------------------
-	Encoder encoder;
-} Motor;
-
 void init_motor_driver_gpio(Motor* motor);
 void init_encoder_gpio(Encoder* encoder);
 
-void init_mdriver_gpiob(void);
+//void init_mdriver_gpiob(void);
 void drive_forwards(void);
 void drive_backwards(void);
 void drive_left(void);
@@ -43,12 +26,12 @@ void set_wheel_direction(uint8_t wheel, uint8_t direction);
 
 typedef struct {
 	volatile uint32_t* prev_cnt;
-	volatile uint32_t** curr_cnt;
-	uint32_t* period_ms;
+	volatile uint32_t* curr_cnt;
+	uint32_t period_ms;
 	volatile float *speed;
 } SpeedContext;
 
-float get_speed_from_encoder(volatile uint32_t*, volatile uint32_t*, uint32_t);
+float get_speed_from_encoder(volatile uint32_t, volatile uint32_t, uint32_t);
 void get_speed_from_encoder_callback(void* context);
 
 void wasd_control(char);

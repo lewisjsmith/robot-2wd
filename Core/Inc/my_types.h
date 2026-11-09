@@ -8,6 +8,8 @@
 #ifndef INC_MY_TYPES_H_
 #define INC_MY_TYPES_H_
 
+#include "stdint.h"
+
 #define RCC_addr 	0x40023800
 #define GPIOA_addr 	0x40020000
 #define GPIOB_addr 	0x40020400
@@ -102,26 +104,82 @@ typedef struct {
 } _USART_struct;
 
 typedef struct {
-	volatile uint32_t* 	WHEEL_ENCODER_COUNT_ADDR;
-	volatile uint32_t* 	WHEEL_DUTY_ADDR;
-	volatile uint32_t 	WHEEL_ENCODER_COUNT_PREV;
-	volatile float		WHEEL_SPEED;
-	float 				SPEED_DESIRED;
-	uint32_t 			SAMPLE_PERIOD_MS;
-	volatile uint32_t	PREV_SAMPLE_TICK_MS;
+	volatile _TIM_struct* MOTOR_ENCODER_TIMER;
+	volatile _GPIO_struct* MOTOR_ENCODER_CHANNEL_1_GPIO;
+	uint8_t MOTOR_ENCODER_CHANNEL_1_PIN;
+	volatile _GPIO_struct* MOTOR_ENCODER_CHANNEL_2_GPIO;
+	uint8_t MOTOR_ENCODER_CHANNEL_2_PIN;
+	// ------------------------------------
+	volatile uint32_t ENCODER_COUNT_PREV;
+	float SPEED_ACTUAL;
+} Encoder;
+
+typedef struct {
 	volatile float 		INTEGRAL;
 	float 				PREV_ERROR;
 	float 				Kp;
 	float			 	Ki;
 	float 				Kd;
-} PidState;
+	float				OUT_MIN;
+	float				OUT_MAX;
+} Pid;
 
 typedef struct {
-	PidState			PID_LEFT;
-	PidState			PID_RIGHT;
+	volatile _GPIO_struct* MOTOR_OUT_1_GPIO;
+	uint8_t MOTOR_OUT_1_GPIO_PIN;
+	volatile _GPIO_struct* MOTOR_OUT_2_GPIO;
+	uint8_t MOTOR_OUT_2_GPIO_PIN;
+	// ------------------------------------
+	volatile _TIM_struct* MOTOR_PWM_TIMER;
+	volatile _GPIO_struct* MOTOR_PWM_CHANNEL_GPIO;
+	uint8_t MOTOR_PWM_CHANNEL;
+	uint8_t MOTOR_PWM_CHANNEL_PIN;
+	// ------------------------------------
+	Encoder ENCODER;
+	// ------------------------------------
+	Pid PID;
+	float SPEED_DESIRED;
+} Motor;
+
+typedef struct {
+	volatile uint32_t* 	WHEEL_ARR_ADDR;
+	volatile uint32_t* 	WHEEL_DUTY_ADDR;
+
+	float* 				SPEED_DESIRED;
+	float*		SPEED_ACTUAL;
+
+	uint32_t 			SAMPLE_PERIOD_MS;
+	volatile uint32_t	PREV_SAMPLE_TICK_MS;
+
+	Pid* 				PID;
+} MotorPidState;
+
+//typedef struct {
+//	volatile uint32_t* 	WHEEL_ENCODER_COUNT_ADDR;
+//	volatile uint32_t* 	WHEEL_DUTY_ADDR;
+//	volatile uint32_t 	WHEEL_ENCODER_COUNT_PREV;
+//	volatile float		WHEEL_SPEED;
+//
+//	float 				SPEED_DESIRED;
+//
+//	uint32_t 			SAMPLE_PERIOD_MS;
+//	volatile uint32_t	PREV_SAMPLE_TICK_MS;
+//
+//	volatile float 		INTEGRAL;
+//	float 				PREV_ERROR;
+//	float 				Kp;
+//	float			 	Ki;
+//	float 				Kd;
+//} PidState;
+
+typedef struct {
+	Motor				MOTOR_LEFT;
+	Motor				MOTOR_RIGHT;
+
 	uint32_t			SPEED_SAMPLE_PERIOD_MS;
 	uint32_t			SPEED_SAMPLE_PRINT_PERIOD_MS;
 } State;
 
+extern State state;
 
 #endif /* INC_MY_TYPES_H_ */

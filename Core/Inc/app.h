@@ -24,10 +24,11 @@
 void init_state(State*);
 
 typedef struct {
-	PidState* state;
+	MotorPidState* state;
 } PidContext;
 
-void pid(volatile PidState* state);
+//void pid(volatile PidState* state);
+float pid_step(Pid* pid, float dt, float* desired, float* actual);
 void pid_callback(void* context);
 
 // To-do:
