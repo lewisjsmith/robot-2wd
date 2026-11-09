@@ -11,13 +11,24 @@
 #include "my_types.h"
 
 typedef struct {
+	volatile _TIM_struct* MOTOR_ENCODER_TIMER;
+	volatile _GPIO_struct* MOTOR_ENCODER_CHANNEL_1_GPIO;
+	uint8_t MOTOR_ENCODER_CHANNEL_1_PIN;
+	volatile _GPIO_struct* MOTOR_ENCODER_CHANNEL_2_GPIO;
+	uint8_t MOTOR_ENCODER_CHANNEL_2_PIN;
+} Encoder;
+
+typedef struct {
 	volatile _GPIO_struct* MOTOR_OUT_1_GPIO;
 	uint8_t MOTOR_OUT_1_GPIO_PIN;
 	volatile _GPIO_struct* MOTOR_OUT_2_GPIO;
 	uint8_t MOTOR_OUT_2_GPIO_PIN;
+	// ------------------------------------
+	Encoder encoder;
 } Motor;
 
 void init_motor_driver_gpio(Motor* motor);
+void init_encoder_gpio(Encoder* encoder);
 
 void init_mdriver_gpiob(void);
 void drive_forwards(void);
@@ -28,7 +39,7 @@ void drive_stop(void);
 void drive_disconnect(void);
 void set_duty(volatile uint32_t* arr_addr, volatile uint32_t* duty_addr, uint8_t percentage);
 void set_wheel_direction(uint8_t wheel, uint8_t direction);
-void init_encoder_gpio(void);
+//void init_encoder_gpio(void);
 
 typedef struct {
 	volatile uint32_t* prev_cnt;

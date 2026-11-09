@@ -57,79 +57,114 @@ void init_motor_driver_gpio(Motor* motor) {
 //	// PB8 as output
 //	_GPIOB->MODER &= ~(3u << 16);
 //	_GPIOB->MODER |= (1u << 16);
-}
+//}
+
+void init_encoder_gpio(Encoder* encoder){
+	encoder->MOTOR_ENCODER_TIMER->CCMR1 &= ~(3u << 0);
+	encoder->MOTOR_ENCODER_TIMER->CCMR1 |= (1u << 0); // Input IC1, mapped to TI1 (Timer channel 1)
+	encoder->MOTOR_ENCODER_TIMER->CCMR1 &= ~(3u << 8);
+	encoder->MOTOR_ENCODER_TIMER->CCMR1 |= (1u << 8); // Input IC2, mapped to TI2 (Timer channel 1)
+
+	encoder->MOTOR_ENCODER_TIMER->CCMR1 &= ~(3u << 2); // Capture on each edge
+	encoder->MOTOR_ENCODER_TIMER->CCMR1 &= ~(15u << 4);
+	encoder->MOTOR_ENCODER_TIMER->CCMR1 |= (3u << 4); // Input capture filter, 8 consecutive events to validate a transition, taken at source frequency
+
+	encoder->MOTOR_ENCODER_TIMER->CCMR1 &= ~(3u << 10); // Capture on each edge
+	encoder->MOTOR_ENCODER_TIMER->CCMR1 &= ~(15u << 12);
+	encoder->MOTOR_ENCODER_TIMER->CCMR1 |= (3u << 12); // Input capture filter, 8 consecutive events to validate a transition, taken at source frequency
+
+	encoder->MOTOR_ENCODER_TIMER->SMCR &= ~(7u << 0);
+	encoder->MOTOR_ENCODER_TIMER->SMCR |= (3u << 0); // Encoder Mode 3, both rising and falling edges trigger counts depending on the others level
+
+	encoder->MOTOR_ENCODER_TIMER->EGR = (1u << 0);
+	encoder->MOTOR_ENCODER_TIMER->SR = ~(1u << 0);
+
+	encoder->MOTOR_ENCODER_TIMER->CR1 |= (1u << 0); // CEN
+
+	 // PA6 Channel 1, AF2
+	encoder->MOTOR_ENCODER_CHANNEL_1_GPIO->MODER &= ~(3u << (2 * encoder->MOTOR_ENCODER_CHANNEL_1_PIN));
+	encoder->MOTOR_ENCODER_CHANNEL_1_GPIO->MODER |= (2u << (2 * encoder->MOTOR_ENCODER_CHANNEL_1_PIN));
+	encoder->MOTOR_ENCODER_CHANNEL_1_GPIO->AFRL &= ~(15u << (4 * encoder->MOTOR_ENCODER_CHANNEL_1_PIN));
+	encoder->MOTOR_ENCODER_CHANNEL_1_GPIO->AFRL |= (2u << (4 * encoder->MOTOR_ENCODER_CHANNEL_1_PIN));
+
+	// PA7 Channel 2, AF2
+	encoder->MOTOR_ENCODER_CHANNEL_2_GPIO->MODER &= ~(3u << (2 * encoder->MOTOR_ENCODER_CHANNEL_2_PIN));
+	encoder->MOTOR_ENCODER_CHANNEL_2_GPIO->MODER |= (2u << (2 * encoder->MOTOR_ENCODER_CHANNEL_2_PIN));
+	encoder->MOTOR_ENCODER_CHANNEL_2_GPIO->AFRL &= ~(15u << (4 * encoder->MOTOR_ENCODER_CHANNEL_2_PIN));
+	encoder->MOTOR_ENCODER_CHANNEL_2_GPIO->AFRL |= (2u << (4 * encoder->MOTOR_ENCODER_CHANNEL_2_PIN));
+};
 
 // TI1FP1 and TI2FP2 refer to TI1, TI2 after the input filters and polarity selection
 // Counts to/from ARR depending on direction
-void init_encoder_gpio(void){
-	_TIM3->CCMR1 &= ~(3u << 0);
-	_TIM3->CCMR1 |= (1u << 0); // Input IC1, mapped to TI1 (Timer channel 1)
-	_TIM3->CCMR1 &= ~(3u << 8);
-	_TIM3->CCMR1 |= (1u << 8); // Input IC2, mapped to TI2 (Timer channel 1)
-
-	_TIM3->CCMR1 &= ~(3u << 2); // Capture on each edge
-	_TIM3->CCMR1 &= ~(15u << 4);
-	_TIM3->CCMR1 |= (3u << 4); // Input capture filter, 8 consecutive events to validate a transition, taken at source frequency
-
-	_TIM3->CCMR1 &= ~(3u << 10); // Capture on each edge
-	_TIM3->CCMR1 &= ~(15u << 12);
-	_TIM3->CCMR1 |= (3u << 12); // Input capture filter, 8 consecutive events to validate a transition, taken at source frequency
-
-	_TIM3->SMCR &= ~(7u << 0);
-	_TIM3->SMCR |= (3u << 0); // Encoder Mode 3, both rising and falling edges trigger counts depending on the others level
-
-	_TIM3->EGR = (1u << 0);
-	_TIM3->SR = ~(1u << 0);
-
-	_TIM3->CR1 |= (1u << 0); // CEN
-
-	 // PA6 Channel 1, AF2
-	_GPIOA->MODER &= ~(3u << 12);
-	_GPIOA->MODER |= (2u << 12);
-	_GPIOA->AFRL &= ~(15u << 24);
-	_GPIOA->AFRL |= (2u << 24);
-
-	// PA7 Channel 2, AF2
-	_GPIOA->MODER &= ~(3u << 14);
-	_GPIOA->MODER |= (2u << 14);
-	_GPIOA->AFRL &= ~(15u << 28);
-	_GPIOA->AFRL |= (2u << 28);
-
-	//
-
-	_TIM4->CCMR1 &= ~(3u << 0);
-	_TIM4->CCMR1 |= (1u << 0); // Input IC1, mapped to TI1 (Timer channel 1)
-	_TIM4->CCMR1 &= ~(3u << 8);
-	_TIM4->CCMR1 |= (1u << 8); // Input IC2, mapped to TI2 (Timer channel 1)
-
-	_TIM4->CCMR1 &= ~(3u << 2); // Capture on each edge
-	_TIM4->CCMR1 &= ~(15u << 4);
-	_TIM4->CCMR1 |= (3u << 4); // Input capture filter, 8 consecutive events to validate a transition, taken at source frequency
-
-	_TIM4->CCMR1 &= ~(3u << 10); // Capture on each edge
-	_TIM4->CCMR1 &= ~(15u << 12);
-	_TIM4->CCMR1 |= (3u << 12); // Input capture filter, 8 consecutive events to validate a transition, taken at source frequency
-
-	_TIM4->SMCR &= ~(7u << 0);
-	_TIM4->SMCR |= (3u << 0); // Encoder Mode 3, both rising and falling edges trigger counts depending on the others level
-
-	_TIM4->EGR = (1u << 0);
-	_TIM4->SR = ~(1u << 0);
-
-	_TIM4->CR1 |= (1u << 0); // CEN
-
-	 // PB6 Channel 1, AF2
-	_GPIOB->MODER &= ~(3u << 12);
-	_GPIOB->MODER |= (2u << 12);
-	_GPIOB->AFRL &= ~(15u << 24);
-	_GPIOB->AFRL |= (2u << 24);
-
-	// PB7 Channel 2, AF2
-	_GPIOB->MODER &= ~(3u << 14);
-	_GPIOB->MODER |= (2u << 14);
-	_GPIOB->AFRL &= ~(15u << 28);
-	_GPIOB->AFRL |= (2u << 28);
-};
+//void init_encoder_gpio(void){
+//	_TIM3->CCMR1 &= ~(3u << 0);
+//	_TIM3->CCMR1 |= (1u << 0); // Input IC1, mapped to TI1 (Timer channel 1)
+//	_TIM3->CCMR1 &= ~(3u << 8);
+//	_TIM3->CCMR1 |= (1u << 8); // Input IC2, mapped to TI2 (Timer channel 1)
+//
+//	_TIM3->CCMR1 &= ~(3u << 2); // Capture on each edge
+//	_TIM3->CCMR1 &= ~(15u << 4);
+//	_TIM3->CCMR1 |= (3u << 4); // Input capture filter, 8 consecutive events to validate a transition, taken at source frequency
+//
+//	_TIM3->CCMR1 &= ~(3u << 10); // Capture on each edge
+//	_TIM3->CCMR1 &= ~(15u << 12);
+//	_TIM3->CCMR1 |= (3u << 12); // Input capture filter, 8 consecutive events to validate a transition, taken at source frequency
+//
+//	_TIM3->SMCR &= ~(7u << 0);
+//	_TIM3->SMCR |= (3u << 0); // Encoder Mode 3, both rising and falling edges trigger counts depending on the others level
+//
+//	_TIM3->EGR = (1u << 0);
+//	_TIM3->SR = ~(1u << 0);
+//
+//	_TIM3->CR1 |= (1u << 0); // CEN
+//
+//	 // PA6 Channel 1, AF2
+//	_GPIOA->MODER &= ~(3u << 12);
+//	_GPIOA->MODER |= (2u << 12);
+//	_GPIOA->AFRL &= ~(15u << 24);
+//	_GPIOA->AFRL |= (2u << 24);
+//
+//	// PA7 Channel 2, AF2
+//	_GPIOA->MODER &= ~(3u << 14);
+//	_GPIOA->MODER |= (2u << 14);
+//	_GPIOA->AFRL &= ~(15u << 28);
+//	_GPIOA->AFRL |= (2u << 28);
+//
+//	//
+//
+//	_TIM4->CCMR1 &= ~(3u << 0);
+//	_TIM4->CCMR1 |= (1u << 0); // Input IC1, mapped to TI1 (Timer channel 1)
+//	_TIM4->CCMR1 &= ~(3u << 8);
+//	_TIM4->CCMR1 |= (1u << 8); // Input IC2, mapped to TI2 (Timer channel 1)
+//
+//	_TIM4->CCMR1 &= ~(3u << 2); // Capture on each edge
+//	_TIM4->CCMR1 &= ~(15u << 4);
+//	_TIM4->CCMR1 |= (3u << 4); // Input capture filter, 8 consecutive events to validate a transition, taken at source frequency
+//
+//	_TIM4->CCMR1 &= ~(3u << 10); // Capture on each edge
+//	_TIM4->CCMR1 &= ~(15u << 12);
+//	_TIM4->CCMR1 |= (3u << 12); // Input capture filter, 8 consecutive events to validate a transition, taken at source frequency
+//
+//	_TIM4->SMCR &= ~(7u << 0);
+//	_TIM4->SMCR |= (3u << 0); // Encoder Mode 3, both rising and falling edges trigger counts depending on the others level
+//
+//	_TIM4->EGR = (1u << 0);
+//	_TIM4->SR = ~(1u << 0);
+//
+//	_TIM4->CR1 |= (1u << 0); // CEN
+//
+//	 // PB6 Channel 1, AF2
+//	_GPIOB->MODER &= ~(3u << 12);
+//	_GPIOB->MODER |= (2u << 12);
+//	_GPIOB->AFRL &= ~(15u << 24);
+//	_GPIOB->AFRL |= (2u << 24);
+//
+//	// PB7 Channel 2, AF2
+//	_GPIOB->MODER &= ~(3u << 14);
+//	_GPIOB->MODER |= (2u << 14);
+//	_GPIOB->AFRL &= ~(15u << 28);
+//	_GPIOB->AFRL |= (2u << 28);
+//};
 
 // PID may need floating point precision for percentage
 // A feedback return value may be required
