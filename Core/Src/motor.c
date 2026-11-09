@@ -23,26 +23,40 @@ void init_share_state(State* st) {
 	state = st;
 }
 
-void init_mdriver_gpiob(void) {
-	// PB4 as output
-	_GPIOB->MODER &= ~(3u << 8);
-	_GPIOB->MODER |= (1u << 8);
+// Needs STBY somewhere
 
-	// PB5 as output
-	_GPIOB->MODER &= ~(3u << 10);
-	_GPIOB->MODER |= (1u << 10);
+void init_motor_driver_gpio(Motor* motor) {
+	motor->MOTOR_OUT_1_GPIO->MODER &= ~(3u << (motor->MOTOR_OUT_1_GPIO_PIN * 2));
+	motor->MOTOR_OUT_1_GPIO->MODER |= (1u << (motor->MOTOR_OUT_1_GPIO_PIN * 2));
 
-	// PB13 as output
-	_GPIOB->MODER &= ~(3u << 26);
-	_GPIOB->MODER |= (1u << 26);
-
-	// PB14 as output
-	_GPIOB->MODER &= ~(3u << 28);
-	_GPIOB->MODER |= (1u << 28);
+	motor->MOTOR_OUT_2_GPIO->MODER &= ~(3u << (motor->MOTOR_OUT_2_GPIO_PIN * 2));
+	motor->MOTOR_OUT_2_GPIO->MODER |= (1u << (motor->MOTOR_OUT_2_GPIO_PIN * 2));
 
 	// PB8 as output
 	_GPIOB->MODER &= ~(3u << 16);
 	_GPIOB->MODER |= (1u << 16);
+}
+
+//void init_mdriver_gpiob(void) {
+//	// PB4 as output
+//	_GPIOB->MODER &= ~(3u << 8);
+//	_GPIOB->MODER |= (1u << 8);
+//
+//	// PB5 as output
+//	_GPIOB->MODER &= ~(3u << 10);
+//	_GPIOB->MODER |= (1u << 10);
+//
+//	// PB13 as output
+//	_GPIOB->MODER &= ~(3u << 26);
+//	_GPIOB->MODER |= (1u << 26);
+//
+//	// PB14 as output
+//	_GPIOB->MODER &= ~(3u << 28);
+//	_GPIOB->MODER |= (1u << 28);
+//
+//	// PB8 as output
+//	_GPIOB->MODER &= ~(3u << 16);
+//	_GPIOB->MODER |= (1u << 16);
 }
 
 // TI1FP1 and TI2FP2 refer to TI1, TI2 after the input filters and polarity selection

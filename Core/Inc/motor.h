@@ -10,6 +10,15 @@
 
 #include "my_types.h"
 
+typedef struct {
+	volatile _GPIO_struct* MOTOR_OUT_1_GPIO;
+	uint8_t MOTOR_OUT_1_GPIO_PIN;
+	volatile _GPIO_struct* MOTOR_OUT_2_GPIO;
+	uint8_t MOTOR_OUT_2_GPIO_PIN;
+} Motor;
+
+void init_motor_driver_gpio(Motor* motor);
+
 void init_mdriver_gpiob(void);
 void drive_forwards(void);
 void drive_backwards(void);
