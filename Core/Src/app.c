@@ -60,7 +60,9 @@ void pid_callback(void* context) {
 	float dt = (now - prev)/1000.0f;
 	if(dt == 0.0f) return;
 
-	float error = pid_step(pid_state->PID, dt, pid_state->SPEED_DESIRED, pid_state->SPEED_ACTUAL);
+	pid_step(pid_state->PID, dt, pid_state->SPEED_DESIRED, pid_state->SPEED_ACTUAL);
+
+	float error = pid_state->PID->OUTPUT;
 	if(error > 100.0f) error = 100.0f;
 	else if(error < 0.0f) error = 0.0f;
 
@@ -68,7 +70,6 @@ void pid_callback(void* context) {
 	set_duty(pid_state->WHEEL_ARR_ADDR, pid_state->WHEEL_DUTY_ADDR, (int)error);
 
 	pid_state->PREV_SAMPLE_TICK_MS = now;
-	pid_state->PID->PREV_ERROR = error;
 }
 
 //void pid_callback(void* context) {
@@ -78,8 +79,8 @@ void pid_callback(void* context) {
 
 // Note that PWM below 10 isn't enough to turn the wheel, may need to adjust for this
 // Need to add 0.3f to this
-float pid_step(Pid* pid, float dt, float* desired, float* actual) {
-	float error = desired - actual;
+void pid_step(Pid* pid, float dt, float* desired, float* actual) {
+	float error = *desired - *actual;
 	float error_p = error * pid->Kp;
 	float error_d = ((error - pid->PREV_ERROR)/dt) * pid->Kd;
 
@@ -88,7 +89,8 @@ float pid_step(Pid* pid, float dt, float* desired, float* actual) {
 	else if(pid->INTEGRAL < pid->OUT_MIN) pid->INTEGRAL = pid->OUT_MIN;
 	float error_i = pid->INTEGRAL;
 
-	return (error_p + error_d + error_i);
+	pid->PREV_ERROR = error;
+	pid->OUTPUT = (error_p + error_d + error_i);
 }
 
 //// Note that PWM below 10 isn't enough to turn the wheel, may need to adjust for this

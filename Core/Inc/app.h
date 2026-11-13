@@ -28,7 +28,7 @@ typedef struct {
 } PidContext;
 
 //void pid(volatile PidState* state);
-float pid_step(Pid* pid, float dt, float* desired, float* actual);
+void pid_step(Pid* pid, float dt, float* desired, float* actual);
 void pid_callback(void* context);
 
 // To-do:

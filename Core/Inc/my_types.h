@@ -117,6 +117,7 @@ typedef struct {
 typedef struct {
 	volatile float 		INTEGRAL;
 	float 				PREV_ERROR;
+	float				OUTPUT;
 	float 				Kp;
 	float			 	Ki;
 	float 				Kd;
@@ -146,7 +147,7 @@ typedef struct {
 	volatile uint32_t* 	WHEEL_DUTY_ADDR;
 
 	float* 				SPEED_DESIRED;
-	float*		SPEED_ACTUAL;
+	float*				SPEED_ACTUAL;
 
 	uint32_t 			SAMPLE_PERIOD_MS;
 	volatile uint32_t	PREV_SAMPLE_TICK_MS;
