@@ -8,10 +8,10 @@
 #ifndef INC_CONSTANTS_H_
 #define INC_CONSTANTS_H_
 
-#define PI 					3.14159265358979323846
+#define PI 					3.14159265358979323846f
 
-#define WHEEL_DIAMETER 		0.064
-#define MAX_UNLOADED_SPEED	0.3
+#define WHEEL_DIAMETER 		0.064f
+#define MAX_UNLOADED_SPEED	0.3f
 // #define MIN_DUTY 10(%)
 
 #define WASD_FORWARD 		119

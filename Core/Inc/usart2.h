@@ -16,4 +16,6 @@ void usart2_write_char(char);
 void usart2_write_string(char*);
 void usart2_read_char(void);
 
+extern volatile char pending_cmd;
+
 #endif /* INC_USART2_H_ */

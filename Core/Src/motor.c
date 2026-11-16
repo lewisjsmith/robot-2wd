@@ -72,9 +72,6 @@ void set_duty(volatile uint32_t* arr_addr, volatile uint32_t* duty_addr, uint8_t
 
 #define WHEEL_LEFT 		0u
 #define WHEEL_RIGHT 	1u
-//#define DIR_BACKWARD 	0u
-//#define DIR_FORWARD		1u
-//#define DIR_BREAK		2u
 
 void set_wheel_direction(uint8_t wheel, MotorMode direction) {
 	if(wheel == WHEEL_LEFT) {
@@ -161,7 +158,7 @@ float get_speed_from_encoder(volatile uint32_t prev_cnt, volatile uint32_t curr_
 
 	if(diff < 0) diff *= -1;
 
-	float speed = (((WHEEL_DIAMETER * PI)/3840) * diff)/(period_ms / 1000.0);
+	float speed = (((WHEEL_DIAMETER * PI)/3840) * diff)/(period_ms / 1000.0f);
 	return speed;
 }
 

@@ -40,12 +40,11 @@ void speed_callback(void* context) {
 	if(output > 100.0f) output = 100.0f;
 	else if(output < 0.0f) output = 0.0f;
 	set_duty(sc->WHEEL_ARR_ADDR, sc->WHEEL_DUTY_ADDR, (int)output);
-
-
 }
 
 // PWM below 10 isn't sufficient to turn the wheel
 // Normalise through constants, 0.3f division required as this is the maximum unloaded speed
+// Watch out for encoder quantisation noise amplification
 void pid_step(Pid* pid, float dt, float* desired, float* actual) {
 	float error = *desired - *actual;
 	float error_p = error * pid->Kp;

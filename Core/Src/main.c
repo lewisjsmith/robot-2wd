@@ -71,7 +71,25 @@ int main(void) {
 	uint32_t speed_ticker_right = 0;
 	uint32_t speed_print_ticker = 0;
 
+// 	No response reaction
+//	uint32_t stale_timer = SYSTICK_MILLISECONDS;
+//	uint32_t stale_threshold_ms = 500;
+//	uint32_t timed_out = false;
+//	// main loop...
+//	if(!timed_out && SYSTICK_MILLISECONDS - stale_timer >= stale_threshold_ms) {
+//		drive_stop();
+//		timed_out = true;
+//	}
+//	// within the pending_cmd scope
+//	stale_timer = SYSTICK_MILLISECONDS;
+//	timed_out = false;
+
 	while(1){
+		if(pending_cmd) {
+			wasd_control(pending_cmd);
+
+			pending_cmd = 0;
+		}
 
 		scheduler(
 					&speed_ticker_left,
@@ -88,10 +106,10 @@ int main(void) {
 		);
 
 		scheduler(
-				&speed_print_ticker,
-				state.SPEED_SAMPLE_PRINT_PERIOD_MS,
-				usart2_print_speed_callback,
-				&pc
+					&speed_print_ticker,
+					state.SPEED_SAMPLE_PRINT_PERIOD_MS,
+					usart2_print_speed_callback,
+					&pc
 		);
 
 	};

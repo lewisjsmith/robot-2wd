@@ -39,14 +39,14 @@ State state = {
 			.SPEED_ACTUAL = 0.0f,
 		},
 
-		.SPEED_DESIRED = 0.15f,
+		.SPEED_DESIRED = 0.157080f,
 
 		.PID = {
 			.INTEGRAL 	= 0.0f,
 			.PREV_ERROR = 0.0f,
-			.Kp 		= 70.0f,
-			.Ki 		= 30.0f,
-			.Kd 		= 8.0f,
+			.Kp 		= 1500.0f,
+			.Ki 		= 1000.0f,
+			.Kd 		= 0.0f,
 			.OUT_MIN	= 0,
 			.OUT_MAX	= 100,
 		},
@@ -76,14 +76,14 @@ State state = {
 			.SPEED_ACTUAL = 0.0f,
 		},
 
-		.SPEED_DESIRED = 0.15f,
+		.SPEED_DESIRED = 0.157080f,
 
 		.PID = {
 			.INTEGRAL 	= 0.0f,
 			.PREV_ERROR = 0.0f,
-			.Kp 		= 70.0f,
-			.Ki 		= 30.0f,
-			.Kd 		= 8.0f,
+			.Kp 		= 1500.0f,
+			.Ki 		= 1000.0f,
+			.Kd 		= 0.0f,
 			.OUT_MIN	= 0,
 			.OUT_MAX	= 100,
 		},

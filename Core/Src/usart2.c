@@ -50,17 +50,19 @@ void usart2_write_string(char* str) {
 	}
 }
 
+volatile char pending_cmd = 0;
 // Extend to strings when required
 void usart2_read_char(void) {
 	while(!(_USART2->SR & (1u << 5)));
-	char c = _USART2->DR;
+//	char c = _USART2->DR;
+	pending_cmd = USART2->DR;
 
 //	// echo
 //	char buffer[100];
 //	snprintf(buffer, sizeof(buffer), "Received: %u \r\n", c);
 // 	usart2_write_string(buffer);
 
- 	wasd_control(c);
+// 	wasd_control(c);
 }
 
 // Extend functionality when required
