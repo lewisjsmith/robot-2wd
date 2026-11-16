@@ -5,17 +5,13 @@
  *      Author: lewis
  */
 
-// Refactor needed below
-
 #include <stdio.h>
 #include <stdint.h>
 
 #include "motor.h"
 #include "usart2.h"
 #include "my_types.h"
-
-#define PI 3.14159265358979323846
-#define WHEEL_DIAMETER 0.064
+#include "constants.h"
 
 void init_motor_driver_gpio(Motor* motor) {
 	motor->MOTOR_OUT_1_GPIO->MODER &= ~(3u << (motor->MOTOR_OUT_1_GPIO_PIN * 2));
@@ -29,7 +25,7 @@ void init_motor_driver_gpio(Motor* motor) {
 	_GPIOB->MODER |= (1u << 16);
 }
 
-void init_encoder_gpio(Encoder* encoder){
+void init_encoder_gpio_timer(Encoder* encoder){
 	encoder->MOTOR_ENCODER_TIMER->CCMR1 &= ~(3u << 0);
 	encoder->MOTOR_ENCODER_TIMER->CCMR1 |= (1u << 0); // Input IC1, mapped to TI1 (Timer channel 1)
 	encoder->MOTOR_ENCODER_TIMER->CCMR1 &= ~(3u << 8);
@@ -76,157 +72,97 @@ void set_duty(volatile uint32_t* arr_addr, volatile uint32_t* duty_addr, uint8_t
 
 #define WHEEL_LEFT 		0u
 #define WHEEL_RIGHT 	1u
-#define DIR_BACKWARD 	0u
-#define DIR_FORWARD		1u
+//#define DIR_BACKWARD 	0u
+//#define DIR_FORWARD		1u
+//#define DIR_BREAK		2u
 
-void set_wheel_direction(uint8_t wheel, uint8_t direction) {
+void set_wheel_direction(uint8_t wheel, MotorMode direction) {
 	if(wheel == WHEEL_LEFT) {
-		if(direction == DIR_BACKWARD) {
+		if(direction == REVERSE) {
 			_GPIOB->BSRR |= (1u << 4);
 			_GPIOB->BSRR |= (1u << 21);
 		}
-		else if(direction == DIR_FORWARD) {
+		else if(direction == DRIVE) {
 			_GPIOB->BSRR |= (1u << 20);
+			_GPIOB->BSRR |= (1u << 5);
+		}
+		else if(direction == BREAK) {
+			_GPIOB->BSRR |= (1u << 4);
 			_GPIOB->BSRR |= (1u << 5);
 		}
 	}
 
 	else if(wheel == WHEEL_RIGHT) {
-		if(direction == DIR_BACKWARD) {
+		if(direction == REVERSE) {
 			_GPIOB->BSRR |= (1u << 29);
 			_GPIOB->BSRR |= (1u << 14);
 		}
-		else if(direction == DIR_FORWARD) {
+		else if(direction == DRIVE) {
 			_GPIOB->BSRR |= (1u << 13);
 			_GPIOB->BSRR |= (1u << 30);
 		}
+		else if(direction == BREAK) {
+			_GPIOB->BSRR |= (1u << 13);
+			_GPIOB->BSRR |= (1u << 14);
+		}
+	}
+}
+
+void set_wheel_mode(Motor* motor, uint8_t wheel, MotorMode direction) {
+	if(motor->MODE != direction) {
+		set_wheel_direction(wheel, direction);
+		motor->PID.PREV_ERROR = 0.0f;
+		motor->MODE = direction;
+		if(direction != BREAK) motor->PID.INTEGRAL = 30.0f;
+		else motor->PID.INTEGRAL = 0.0f;
 	}
 }
 
 void drive_forwards(void) {
 	_GPIOB->BSRR |= (1u << 8); // STBY
-
-	set_wheel_direction(WHEEL_LEFT, DIR_FORWARD);
-	set_wheel_direction(WHEEL_RIGHT, DIR_FORWARD);
-
-	state.MOTOR_LEFT.SPEED_DESIRED = 0.15f;
-	state.MOTOR_RIGHT.SPEED_DESIRED = 0.15f;
+	set_wheel_mode(&state.MOTOR_LEFT, WHEEL_LEFT, DRIVE);
+	set_wheel_mode(&state.MOTOR_RIGHT, WHEEL_RIGHT, DRIVE);
 }
 
 void drive_backwards(void) {
-	_GPIOB->BSRR |= (1u << 8); // STBY
-
-	set_wheel_direction(WHEEL_LEFT, DIR_BACKWARD);
-	set_wheel_direction(WHEEL_RIGHT, DIR_BACKWARD);
-
-	state.MOTOR_LEFT.SPEED_DESIRED = 0.15f;
-	state.MOTOR_RIGHT.SPEED_DESIRED = 0.15f;
+	_GPIOB->BSRR |= (1u << 8);
+	set_wheel_mode(&state.MOTOR_LEFT, WHEEL_LEFT, REVERSE);
+	set_wheel_mode(&state.MOTOR_RIGHT, WHEEL_RIGHT, REVERSE);
 }
 
 void drive_left(void) {
-	_GPIOB->BSRR |= (1u << 8); // STBY
-
-	set_wheel_direction(WHEEL_LEFT, DIR_FORWARD);
-	set_wheel_direction(WHEEL_RIGHT, DIR_FORWARD);
-
-	state.MOTOR_LEFT.SPEED_DESIRED = 0.0f;
-	state.MOTOR_RIGHT.SPEED_DESIRED = 0.15f;
+	_GPIOB->BSRR |= (1u << 8);
+	set_wheel_mode(&state.MOTOR_LEFT, WHEEL_LEFT, BREAK);
+	set_wheel_mode(&state.MOTOR_RIGHT, WHEEL_RIGHT, DRIVE);
 }
 
 void drive_right(void) {
-	_GPIOB->BSRR |= (1u << 8); // STBY
-
-	set_wheel_direction(WHEEL_LEFT, DIR_FORWARD);
-	set_wheel_direction(WHEEL_RIGHT, DIR_FORWARD);
-
-	state.MOTOR_LEFT.SPEED_DESIRED = 0.15f;
-	state.MOTOR_RIGHT.SPEED_DESIRED = 0.0f;
+	_GPIOB->BSRR |= (1u << 8);
+	set_wheel_mode(&state.MOTOR_LEFT, WHEEL_LEFT, DRIVE);
+	set_wheel_mode(&state.MOTOR_RIGHT, WHEEL_RIGHT, BREAK);
 }
 
 void drive_stop(void) {
-	set_duty(&_TIM2->ARR, &_TIM2->CCR2, 0);
-	set_duty(&_TIM2->ARR, &_TIM2->CCR3, 0);
+	_GPIOB->BSRR |= (1u << 8);
+	set_wheel_mode(&state.MOTOR_LEFT, WHEEL_LEFT, BREAK);
+	set_wheel_mode(&state.MOTOR_RIGHT, WHEEL_RIGHT, BREAK);
 }
 
 void drive_disconnect(void) {
-	_GPIOB->BSRR |= (1u << 24); // STBY
-	state.MOTOR_LEFT.SPEED_DESIRED = 0.0f;
-	state.MOTOR_RIGHT.SPEED_DESIRED = 0.0f;
+	_GPIOB->BSRR |= (1u << 24);
+	set_wheel_mode(&state.MOTOR_LEFT, WHEEL_LEFT, BREAK);
+	set_wheel_mode(&state.MOTOR_RIGHT, WHEEL_RIGHT, BREAK);
 }
 
-//void drive_forwards(void) {
-//	_GPIOB->BSRR |= (1u << 8); // STBY
-//
-//	set_wheel_direction(WHEEL_LEFT, DIR_FORWARD);
-//	set_wheel_direction(WHEEL_RIGHT, DIR_FORWARD);
-//
-//	set_duty(&_TIM2->ARR, &_TIM2->CCR2, 30);
-//	set_duty(&_TIM2->ARR, &_TIM2->CCR3, 30);
-//}
-//
-//void drive_backwards(void) {
-//	_GPIOB->BSRR |= (1u << 8); // STBY
-//
-//	set_wheel_direction(WHEEL_LEFT, DIR_BACKWARD);
-//	set_wheel_direction(WHEEL_RIGHT, DIR_BACKWARD);
-//
-//	set_duty(&_TIM2->ARR, &_TIM2->CCR2, 30);
-//	set_duty(&_TIM2->ARR, &_TIM2->CCR3, 30);
-//}
-//
-//void drive_left(void) {
-//	_GPIOB->BSRR |= (1u << 8); // STBY
-//
-//	set_wheel_direction(WHEEL_LEFT, DIR_FORWARD);
-//	set_wheel_direction(WHEEL_RIGHT, DIR_FORWARD);
-//
-//	set_duty(&_TIM2->ARR, &_TIM2->CCR2, 0);
-//	set_duty(&_TIM2->ARR, &_TIM2->CCR3, 30);
-//}
-//
-//void drive_right(void) {
-//	_GPIOB->BSRR |= (1u << 8); // STBY
-//
-//	set_wheel_direction(WHEEL_LEFT, DIR_FORWARD);
-//	set_wheel_direction(WHEEL_RIGHT, DIR_FORWARD);
-//
-//	set_duty(&_TIM2->ARR, &_TIM2->CCR2, 30);
-//	set_duty(&_TIM2->ARR, &_TIM2->CCR3, 0);
-//}
-//
-//void drive_stop(void) {
-//	set_duty(&_TIM2->ARR, &_TIM2->CCR2, 0);
-//	set_duty(&_TIM2->ARR, &_TIM2->CCR3, 0);
-//}
-
-//void drive_disconnect(void) {
-//	_GPIOB->BSRR |= (1u << 24); // STBY
-//}
-
-// Fix the double read, need single-source-of-truth for count
 float get_speed_from_encoder(volatile uint32_t prev_cnt, volatile uint32_t curr_cnt, uint32_t period_ms) {
 	uint16_t prev = prev_cnt;
 	uint16_t curr = curr_cnt;
 	int16_t diff = curr - prev;
 
-	// Added for PID in reverse but loses direction, separately update encoder difference and pull from that?
 	if(diff < 0) diff *= -1;
 
 	float speed = (((WHEEL_DIAMETER * PI)/3840) * diff)/(period_ms / 1000.0);
 	return speed;
-}
-
-void get_speed_from_encoder_callback(void* context) {
-	SpeedContext* sc = (SpeedContext*)context;
-	volatile uint32_t prev = *sc->prev_cnt;
-	volatile uint32_t curr = *sc->curr_cnt;
-
-	float speed = get_speed_from_encoder(
-			prev,
-			curr,
-			sc->period_ms);
-	*(sc->speed) = speed;
-	*(sc->prev_cnt) = curr;
 }
 
 // Needs pairing with a suitable delay
@@ -240,8 +176,7 @@ void usart2_print_speed(volatile float speed) {
 	usart2_write_string(buffer);
 }
 
-void usart2_print_speed_callback(void* context)
-{
+void usart2_print_speed_callback(void* context) {
     PrintContext* pc = (PrintContext*)context;
 
 	char buffer_l[100];
@@ -260,13 +195,6 @@ void usart2_print_speed_callback(void* context)
 	usart2_write_string(buffer_r);
     usart2_print_speed(*(pc->WHEEL_RIGHT_SPEED));
 }
-
-#define WASD_FORWARD 		119
-#define WASD_LEFT 			97
-#define WASD_RIGHT			100
-#define WASD_BACKWARD		115
-#define SPACEBAR_STOP		32
-#define Q_DISCONNECT		113
 
 void wasd_control(char input) {
 	if(input == WASD_FORWARD){

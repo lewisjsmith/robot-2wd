@@ -31,6 +31,8 @@ typedef struct {
 void pid_step(Pid* pid, float dt, float* desired, float* actual);
 void pid_callback(void* context);
 
+void speed_callback(void* context);
+
 // To-do:
 // Split pid fn parameters, split separate pid state from overall state
 // Set desired speeds for turning to be enacted by PID instead of manual PWM

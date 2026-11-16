@@ -8,6 +8,7 @@
 #include "my_types.h"
 #include "config.h"
 #include "math.h"
+#include "stdint.h"
 
 State state = {
 
@@ -15,6 +16,8 @@ State state = {
 	.SPEED_SAMPLE_PERIOD_MS = 4,
 
 	.MOTOR_LEFT = {
+		.MODE 					= BREAK,
+
 		.MOTOR_OUT_1_GPIO       = _GPIOB,
 		.MOTOR_OUT_1_GPIO_PIN   = 4,
 		.MOTOR_OUT_2_GPIO       = _GPIOB,
@@ -36,10 +39,10 @@ State state = {
 			.SPEED_ACTUAL = 0.0f,
 		},
 
-		.SPEED_DESIRED = 0.0f,
+		.SPEED_DESIRED = 0.15f,
 
 		.PID = {
-			.INTEGRAL 	= 30.0f,
+			.INTEGRAL 	= 0.0f,
 			.PREV_ERROR = 0.0f,
 			.Kp 		= 70.0f,
 			.Ki 		= 30.0f,
@@ -50,6 +53,8 @@ State state = {
 	},
 
 	.MOTOR_RIGHT = {
+		.MODE 					= BREAK,
+
 		.MOTOR_OUT_1_GPIO       = _GPIOB,
 		.MOTOR_OUT_1_GPIO_PIN   = 13,
 		.MOTOR_OUT_2_GPIO       = _GPIOB,
@@ -71,10 +76,10 @@ State state = {
 			.SPEED_ACTUAL = 0.0f,
 		},
 
-		.SPEED_DESIRED = 0.0f,
+		.SPEED_DESIRED = 0.15f,
 
 		.PID = {
-			.INTEGRAL 	= 30.0f,
+			.INTEGRAL 	= 0.0f,
 			.PREV_ERROR = 0.0f,
 			.Kp 		= 70.0f,
 			.Ki 		= 30.0f,
@@ -85,3 +90,23 @@ State state = {
 
 	},
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

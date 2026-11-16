@@ -11,74 +11,41 @@
 #include <math.h>
 
 #include "app.h"
+#include <stdint.h>
 
-//void init_state(State* state) {
-//	PidState pid_left;
-//	pid_left.WHEEL_ENCODER_COUNT_ADDR = WHEEL_LEFT_TIM3_CNT;
-//	pid_left.WHEEL_ENCODER_COUNT_PREV = 0;
-//	pid_left.WHEEL_DUTY_ADDR = &_TIM2->CCR2;
-//	pid_left.WHEEL_SPEED = 0.0f;
-//	pid_left.SPEED_DESIRED = 0.1f;
-//	pid_left.SAMPLE_PERIOD_MS = 4;
-//	pid_left.PREV_SAMPLE_TICK_MS = SYSTICK_MILLISECONDS;
-//	pid_left.INTEGRAL = 30.0f;
-//	pid_left.PREV_ERROR = 0.0f;
-//	pid_left.Kp = 200.0f;
-//	pid_left.Ki = 80.0f;
-//	pid_left.Kd = 25.0f;
-//
-//	PidState pid_right;
-//	pid_right.WHEEL_ENCODER_COUNT_ADDR = WHEEL_RIGHT_TIM4_CNT;
-//	pid_right.WHEEL_ENCODER_COUNT_PREV = 0;
-//	pid_right.WHEEL_DUTY_ADDR = &_TIM2->CCR3;
-//	pid_right.WHEEL_SPEED = 0.0f;
-//	pid_right.SPEED_DESIRED = 0.1f;
-//	pid_right.SAMPLE_PERIOD_MS = 4;
-//	pid_right.PREV_SAMPLE_TICK_MS = SYSTICK_MILLISECONDS;
-//	pid_right.INTEGRAL = 30.0f;
-//	pid_right.PREV_ERROR = 0.0f;
-//	pid_right.Kp = 200.0f;
-//	pid_right.Ki = 80.0f;
-//	pid_right.Kd = 25.0f;
-//
-//	state->PID_LEFT = pid_left;
-//	state->PID_RIGHT = pid_right;
-//
-//	state->SPEED_SAMPLE_PERIOD_MS = 4;
-//	state->SPEED_SAMPLE_PRINT_PERIOD_MS = 100;
-//}
+#include "motor.h"
 
-// Set desired speed via uart and assign it to an state variable
-// Either with a scheduler or on the main loop, run one loop of a PID
-// Repeat
-
-void pid_callback(void* context) {
-	MotorPidState* pid_state = (MotorPidState*)context;
+void speed_callback(void* context) {
+	SpeedContext* sc = (SpeedContext*)context;
 
 	uint32_t now = SYSTICK_MILLISECONDS;
-	uint32_t prev = pid_state->PREV_SAMPLE_TICK_MS;
-	float dt = (now - prev)/1000.0f;
+	uint32_t prev = sc->PREV_SAMPLE_TICK_MS;
+	float dt = (now - prev);
 	if(dt == 0.0f) return;
 
-	pid_step(pid_state->PID, dt, pid_state->SPEED_DESIRED, pid_state->SPEED_ACTUAL);
+	// Speed step
+	uint32_t prev_count = *(sc->PREV_COUNT);
+	uint32_t curr_count = *(sc->CURR_COUNT);
+	float speed = get_speed_from_encoder(prev_count, curr_count, dt);
+	*(sc->SPEED_ACTUAL) = speed;
+	*(sc->PREV_COUNT) = curr_count;
 
-	float error = pid_state->PID->OUTPUT;
-	if(error > 100.0f) error = 100.0f;
-	else if(error < 0.0f) error = 0.0f;
+	sc->PREV_SAMPLE_TICK_MS = now;
 
-	// TODO: Join get_speed and PID
-	set_duty(pid_state->WHEEL_ARR_ADDR, pid_state->WHEEL_DUTY_ADDR, (int)error);
+	if(*(sc->MODE) == BREAK) return;
 
-	pid_state->PREV_SAMPLE_TICK_MS = now;
+	// PID step)
+	pid_step(sc->PID, dt/1000.0f, sc->SPEED_DESIRED, sc->SPEED_ACTUAL);
+	float output = sc->PID->OUTPUT;
+	if(output > 100.0f) output = 100.0f;
+	else if(output < 0.0f) output = 0.0f;
+	set_duty(sc->WHEEL_ARR_ADDR, sc->WHEEL_DUTY_ADDR, (int)output);
+
+
 }
 
-//void pid_callback(void* context) {
-//	PidContext* pc = (PidContext*)context;
-//	pid(pc->state);
-//}
-
-// Note that PWM below 10 isn't enough to turn the wheel, may need to adjust for this
-// Need to add 0.3f to this
+// PWM below 10 isn't sufficient to turn the wheel
+// Normalise through constants, 0.3f division required as this is the maximum unloaded speed
 void pid_step(Pid* pid, float dt, float* desired, float* actual) {
 	float error = *desired - *actual;
 	float error_p = error * pid->Kp;
@@ -93,51 +60,5 @@ void pid_step(Pid* pid, float dt, float* desired, float* actual) {
 	pid->OUTPUT = (error_p + error_d + error_i);
 }
 
-//// Note that PWM below 10 isn't enough to turn the wheel, may need to adjust for this
-//void pid(volatile PidState* state) {
-//	uint32_t now = SYSTICK_MILLISECONDS;
-//	uint32_t prev = state->PREV_SAMPLE_TICK_MS;
-//	float dt = (now - prev)/1000.0f;
-//	if(dt == 0.0f) return;
-//
-//	float error = (state->SPEED_DESIRED - state->WHEEL_SPEED)/0.3f;
-//
-//	float error_p = error * state->Kp;
-//	float error_d = ((error - state->PREV_ERROR)/dt) * state->Kd;
-//
-//	// Integral clamp
-//	state->INTEGRAL += error * dt * state->Ki;
-//	if(state->INTEGRAL > 100.0f) state->INTEGRAL = 100.0f;
-//	else if(state->INTEGRAL < 0.0f) state->INTEGRAL = 0.0f;
-//
-//	float error_i = state->INTEGRAL;
-//	float error_sum = error_p + error_d + error_i;
-//
-//	// PWM Clamp
-//	if(error_sum > 100.0) error_sum = 100.0;
-//	else if(error_sum < 0) error_sum = 0.0;
-//
-//	// TODO: Join get_speed and PID
-//	set_duty(&_TIM2->ARR, state->WHEEL_DUTY_ADDR, (int)error_sum);
-//
-//	state->PREV_SAMPLE_TICK_MS = now;
-//	state->PREV_ERROR = error;
-//}
-//
 
-// PB9 TIM2_CH2 and PB10 TIM2_CH3, driving PWMA and PWMB
-
-// PB4, PB5, PB13, PB14 for AIN1, AIN2, BIN1, BIN2,
-
-// PB8 for STBY
-
-// UART2 for debugging
-// Enable NVIC interrupt
-// Write interrupt handler, keep it short
-
-// TIM2 for everything
-// Enable NVIC interrupt
-// Write interrupt handler, keep it short
-
-// SysTick for delays
 

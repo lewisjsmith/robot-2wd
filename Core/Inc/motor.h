@@ -11,7 +11,7 @@
 #include "my_types.h"
 
 void init_motor_driver_gpio(Motor* motor);
-void init_encoder_gpio(Encoder* encoder);
+void init_encoder_gpio_timer(Encoder* encoder);
 
 //void init_mdriver_gpiob(void);
 void drive_forwards(void);
@@ -25,10 +25,17 @@ void set_wheel_direction(uint8_t wheel, uint8_t direction);
 //void init_encoder_gpio(void);
 
 typedef struct {
-	volatile uint32_t* prev_cnt;
-	volatile uint32_t* curr_cnt;
-	uint32_t period_ms;
-	volatile float *speed;
+	volatile uint32_t* 	PREV_COUNT;
+	volatile uint32_t* 	CURR_COUNT;
+	volatile float* 	SPEED_ACTUAL;
+	// --------------------------
+	float* 				SPEED_DESIRED;
+	volatile uint32_t* 	WHEEL_ARR_ADDR;
+	volatile uint32_t* 	WHEEL_DUTY_ADDR;
+	Pid* 				PID;
+	MotorMode*		 	MODE;
+	// --------------------------
+	volatile uint32_t	PREV_SAMPLE_TICK_MS;
 } SpeedContext;
 
 float get_speed_from_encoder(volatile uint32_t, volatile uint32_t, uint32_t);

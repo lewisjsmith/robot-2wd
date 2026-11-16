@@ -125,6 +125,12 @@ typedef struct {
 	float				OUT_MAX;
 } Pid;
 
+typedef enum {
+	DRIVE,
+	BREAK,
+	REVERSE
+} MotorMode;
+
 typedef struct {
 	volatile _GPIO_struct* MOTOR_OUT_1_GPIO;
 	uint8_t MOTOR_OUT_1_GPIO_PIN;
@@ -140,6 +146,8 @@ typedef struct {
 	// ------------------------------------
 	Pid PID;
 	float SPEED_DESIRED;
+	// ------------------------------------
+	MotorMode MODE;
 } Motor;
 
 typedef struct {
@@ -154,24 +162,6 @@ typedef struct {
 
 	Pid* 				PID;
 } MotorPidState;
-
-//typedef struct {
-//	volatile uint32_t* 	WHEEL_ENCODER_COUNT_ADDR;
-//	volatile uint32_t* 	WHEEL_DUTY_ADDR;
-//	volatile uint32_t 	WHEEL_ENCODER_COUNT_PREV;
-//	volatile float		WHEEL_SPEED;
-//
-//	float 				SPEED_DESIRED;
-//
-//	uint32_t 			SAMPLE_PERIOD_MS;
-//	volatile uint32_t	PREV_SAMPLE_TICK_MS;
-//
-//	volatile float 		INTEGRAL;
-//	float 				PREV_ERROR;
-//	float 				Kp;
-//	float			 	Ki;
-//	float 				Kd;
-//} PidState;
 
 typedef struct {
 	Motor				MOTOR_LEFT;
