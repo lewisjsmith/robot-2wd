@@ -127,7 +127,7 @@ typedef struct {
 
 typedef enum {
 	DRIVE,
-	BREAK,
+	BRAKE,
 	REVERSE
 } MotorMode;
 

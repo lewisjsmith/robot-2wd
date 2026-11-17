@@ -16,7 +16,7 @@ State state = {
 	.SPEED_SAMPLE_PERIOD_MS = 4,
 
 	.MOTOR_LEFT = {
-		.MODE 					= BREAK,
+		.MODE 					= BRAKE,
 
 		.MOTOR_OUT_1_GPIO       = _GPIOB,
 		.MOTOR_OUT_1_GPIO_PIN   = 4,
@@ -53,7 +53,7 @@ State state = {
 	},
 
 	.MOTOR_RIGHT = {
-		.MODE 					= BREAK,
+		.MODE 					= BRAKE,
 
 		.MOTOR_OUT_1_GPIO       = _GPIOB,
 		.MOTOR_OUT_1_GPIO_PIN   = 13,

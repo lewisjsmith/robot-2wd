@@ -32,7 +32,7 @@ void speed_callback(void* context) {
 
 	sc->PREV_SAMPLE_TICK_MS = now;
 
-	if(*(sc->MODE) == BREAK) return;
+	if(*(sc->MODE) == BRAKE) return;
 
 	// PID step
 	pid_step(sc->PID, dt/1000.0f, sc->SPEED_DESIRED, sc->SPEED_ACTUAL);

@@ -82,7 +82,7 @@ void set_wheel_direction(uint8_t wheel, MotorMode direction) {
 			_GPIOB->BSRR |= (1u << 20);
 			_GPIOB->BSRR |= (1u << 5);
 		}
-		else if(direction == BREAK) {
+		else if(direction == BRAKE) {
 			_GPIOB->BSRR |= (1u << 4);
 			_GPIOB->BSRR |= (1u << 5);
 		}
@@ -97,7 +97,7 @@ void set_wheel_direction(uint8_t wheel, MotorMode direction) {
 			_GPIOB->BSRR |= (1u << 13);
 			_GPIOB->BSRR |= (1u << 30);
 		}
-		else if(direction == BREAK) {
+		else if(direction == BRAKE) {
 			_GPIOB->BSRR |= (1u << 13);
 			_GPIOB->BSRR |= (1u << 14);
 		}
@@ -109,7 +109,7 @@ void set_wheel_mode(Motor* motor, uint8_t wheel, MotorMode direction) {
 		set_wheel_direction(wheel, direction);
 		motor->PID.PREV_ERROR = 0.0f;
 		motor->MODE = direction;
-		if(direction != BREAK) motor->PID.INTEGRAL = 30.0f;
+		if(direction != BRAKE) motor->PID.INTEGRAL = 30.0f;
 		else motor->PID.INTEGRAL = 0.0f;
 	}
 }
@@ -128,26 +128,26 @@ void drive_backwards(void) {
 
 void drive_left(void) {
 	_GPIOB->BSRR |= (1u << 8);
-	set_wheel_mode(&state.MOTOR_LEFT, WHEEL_LEFT, BREAK);
+	set_wheel_mode(&state.MOTOR_LEFT, WHEEL_LEFT, BRAKE);
 	set_wheel_mode(&state.MOTOR_RIGHT, WHEEL_RIGHT, DRIVE);
 }
 
 void drive_right(void) {
 	_GPIOB->BSRR |= (1u << 8);
 	set_wheel_mode(&state.MOTOR_LEFT, WHEEL_LEFT, DRIVE);
-	set_wheel_mode(&state.MOTOR_RIGHT, WHEEL_RIGHT, BREAK);
+	set_wheel_mode(&state.MOTOR_RIGHT, WHEEL_RIGHT, BRAKE);
 }
 
 void drive_stop(void) {
 	_GPIOB->BSRR |= (1u << 8);
-	set_wheel_mode(&state.MOTOR_LEFT, WHEEL_LEFT, BREAK);
-	set_wheel_mode(&state.MOTOR_RIGHT, WHEEL_RIGHT, BREAK);
+	set_wheel_mode(&state.MOTOR_LEFT, WHEEL_LEFT, BRAKE);
+	set_wheel_mode(&state.MOTOR_RIGHT, WHEEL_RIGHT, BRAKE);
 }
 
 void drive_disconnect(void) {
 	_GPIOB->BSRR |= (1u << 24);
-	set_wheel_mode(&state.MOTOR_LEFT, WHEEL_LEFT, BREAK);
-	set_wheel_mode(&state.MOTOR_RIGHT, WHEEL_RIGHT, BREAK);
+	set_wheel_mode(&state.MOTOR_LEFT, WHEEL_LEFT, BRAKE);
+	set_wheel_mode(&state.MOTOR_RIGHT, WHEEL_RIGHT, BRAKE);
 }
 
 float get_speed_from_encoder(volatile uint32_t prev_cnt, volatile uint32_t curr_cnt, uint32_t period_ms) {
