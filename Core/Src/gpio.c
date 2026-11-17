@@ -17,12 +17,16 @@ void gpio_set_af(volatile _GPIO_struct* port, uint8_t pin, uint8_t af) {
 	if(af > 15) return;
 
 	volatile uint32_t* AF_reg;
+	uint8_t pin_shift = pin;
 
 	if(pin < 8) AF_reg = &port->AFRL;
-	else AF_reg = &port->AFRH;
+	else {
+		AF_reg = &port->AFRH;
+		pin_shift = pin - 8;
+	}
 
-	*AF_reg &= ~(15u << (4 * pin));
-	*AF_reg |= (af << (4 * pin));
+	*AF_reg &= ~(15u << (4 * pin_shift));
+	*AF_reg |= (af << (4 * pin_shift));
 }
 
 void gpio_write(volatile _GPIO_struct* port, uint8_t pin, bool high) {

@@ -7,6 +7,8 @@
 
 #include <stdint.h>
 
+#include "gpio.h"
+
 #include "my_types.h"
 #include "pwm.h"
 
@@ -64,14 +66,6 @@ void init_motor_pwm_timer(Motor* motor) {
 }
 
 void init_motor_pwm_gpio(Motor* motor) {
-	motor->MOTOR_PWM_CHANNEL_GPIO->MODER &= ~(3u << (2 * motor->MOTOR_PWM_CHANNEL_PIN));
-	motor->MOTOR_PWM_CHANNEL_GPIO->MODER |= (2u << (2 * motor->MOTOR_PWM_CHANNEL_PIN));
-	// TODO: AFRH or AFRL conditionals
-	motor->MOTOR_PWM_CHANNEL_GPIO->AFRH &= ~(15u << (4 * (motor->MOTOR_PWM_CHANNEL_PIN - 8)));
-	motor->MOTOR_PWM_CHANNEL_GPIO->AFRH |= (1u << (4 * (motor->MOTOR_PWM_CHANNEL_PIN - 8)));
+	gpio_set_mode(motor->MOTOR_PWM_CHANNEL_GPIO, motor->MOTOR_PWM_CHANNEL_PIN, AF);
+	gpio_set_af(motor->MOTOR_PWM_CHANNEL_GPIO, motor->MOTOR_PWM_CHANNEL_PIN, 1);
 }
-
-void TIM2_IRQHandler(void){
-	// _TIM2->SR may need clearing on interrupt
-	// Do something
-};

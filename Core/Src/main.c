@@ -22,6 +22,8 @@
 #include "config.h"
 #include "app.h"
 
+#include "tim.h"
+
 int main(void) {
 	init_rcc();
 	init_systick();
@@ -31,15 +33,17 @@ int main(void) {
 	init_motor_driver_gpio(&state.MOTOR_LEFT);
 	init_motor_driver_gpio(&state.MOTOR_RIGHT);
 
+	// Need to save PSC and ARR somewhere
+	tim_pwm_init(_TIM2, 0, 799);
+	tim_pwm_channel_init(_TIM2, 2);
+	tim_pwm_channel_init(_TIM2, 3);
 	init_motor_pwm_gpio(&state.MOTOR_LEFT);
-	init_motor_pwm_timer(&state.MOTOR_LEFT);
-
 	init_motor_pwm_gpio(&state.MOTOR_RIGHT);
-	init_motor_pwm_timer(&state.MOTOR_RIGHT);
 
-	// TODO: add timer to name
-	init_encoder_gpio_timer(&state.MOTOR_LEFT.ENCODER);
-	init_encoder_gpio_timer(&state.MOTOR_RIGHT.ENCODER);
+	tim_encoder_init(_TIM3);
+	tim_encoder_init(_TIM4);
+	init_encoder_gpio(&state.MOTOR_LEFT.ENCODER);
+	init_encoder_gpio(&state.MOTOR_RIGHT.ENCODER);
 
 	PrintContext pc;
 	pc.WHEEL_LEFT_SPEED = &state.MOTOR_LEFT.ENCODER.SPEED_ACTUAL;

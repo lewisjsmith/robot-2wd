@@ -21,6 +21,16 @@ void init_motor_driver_gpio(Motor* motor) {
 	gpio_set_mode(_GPIOB, 8, OUTPUT); //PB8 STBY
 }
 
+void init_encoder_gpio(Encoder* encoder) {
+	 // PA6 Channel 1, AF2
+	gpio_set_mode(encoder->MOTOR_ENCODER_CHANNEL_1_GPIO, encoder->MOTOR_ENCODER_CHANNEL_1_PIN, AF);
+	gpio_set_af(encoder->MOTOR_ENCODER_CHANNEL_1_GPIO, encoder->MOTOR_ENCODER_CHANNEL_1_PIN, 2);
+
+	// PA7 Channel 2, AF2
+	gpio_set_mode(encoder->MOTOR_ENCODER_CHANNEL_2_GPIO, encoder->MOTOR_ENCODER_CHANNEL_2_PIN, AF);
+	gpio_set_af(encoder->MOTOR_ENCODER_CHANNEL_2_GPIO, encoder->MOTOR_ENCODER_CHANNEL_2_PIN, 2);
+}
+
 void init_encoder_gpio_timer(Encoder* encoder){
 	encoder->MOTOR_ENCODER_TIMER->CCMR1 &= ~(3u << 0);
 	encoder->MOTOR_ENCODER_TIMER->CCMR1 |= (1u << 0); // Input IC1, mapped to TI1 (Timer channel 1)

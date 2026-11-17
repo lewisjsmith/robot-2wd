@@ -15,15 +15,14 @@
 #include "usart2.h"
 #include "motor.h"
 
+#include "gpio.h"
+
 void init_usart2(void) {
-	_GPIOA->MODER &= ~(3u << 4);
-	_GPIOA->MODER &= ~(3u << 6);
-	_GPIOA->MODER |= (2u << 4);
-	_GPIOA->MODER |= (2u << 6);
-	_GPIOA->AFRL &= ~(15u << 8);
-	_GPIOA->AFRL &= ~(15u << 12);
-	_GPIOA->AFRL |= (7u << 8);
-	_GPIOA->AFRL |= (7u << 12);
+	gpio_set_mode(_GPIOA, 2, AF);
+	gpio_set_af(_GPIOA, 2, 7);
+
+	gpio_set_mode(_GPIOA, 3, AF);
+	gpio_set_af(_GPIOA, 3, 7);
 
 	_USART2->CR1 |= (1u << 3); // TE
 	_USART2->CR1 |= (1u << 2); // RE
