@@ -48,7 +48,7 @@ State state = {
 			.Ki 		= 1000.0f,
 			.Kd 		= 0.0f,
 			.OUT_MIN	= 0,
-			.OUT_MAX	= 100,
+			.OUT_MAX	= 800,
 		},
 	},
 
@@ -85,7 +85,7 @@ State state = {
 			.Ki 		= 1000.0f,
 			.Kd 		= 0.0f,
 			.OUT_MIN	= 0,
-			.OUT_MAX	= 100,
+			.OUT_MAX	= 800,
 		},
 
 	},

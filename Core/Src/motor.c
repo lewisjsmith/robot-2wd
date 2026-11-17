@@ -60,14 +60,13 @@ void init_encoder_gpio_timer(Encoder* encoder){
 	encoder->MOTOR_ENCODER_CHANNEL_2_GPIO->AFRL |= (2u << (4 * encoder->MOTOR_ENCODER_CHANNEL_2_PIN));
 };
 
-void set_duty(volatile uint32_t* arr_addr, volatile uint32_t* duty_addr, uint8_t percentage) {
-	if(percentage > 100) return;
-	if(percentage == 0){
+void set_duty(volatile uint32_t* arr_addr, volatile uint32_t* duty_addr, float new_duty_ccr) {
+	if(new_duty_ccr > *arr_addr) return;
+	if(new_duty_ccr == 0){
 		*duty_addr = 0;
 		return;
 	}
-	uint32_t new_duty = ((*arr_addr + 1) * percentage)/100;
-	*duty_addr = new_duty - 1;
+	*duty_addr = new_duty_ccr;
 }
 
 #define WHEEL_LEFT 		0u

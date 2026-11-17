@@ -20,7 +20,7 @@ void drive_left(void);
 void drive_right(void);
 void drive_stop(void);
 void drive_disconnect(void);
-void set_duty(volatile uint32_t* arr_addr, volatile uint32_t* duty_addr, uint8_t percentage);
+void set_duty(volatile uint32_t* arr_addr, volatile uint32_t* duty_addr, float percentage);
 void set_wheel_direction(uint8_t wheel, uint8_t direction);
 //void init_encoder_gpio(void);
 

@@ -34,12 +34,12 @@ void speed_callback(void* context) {
 
 	if(*(sc->MODE) == BREAK) return;
 
-	// PID step)
+	// PID step
 	pid_step(sc->PID, dt/1000.0f, sc->SPEED_DESIRED, sc->SPEED_ACTUAL);
 	float output = sc->PID->OUTPUT;
-	if(output > 100.0f) output = 100.0f;
+	if(output > *(sc->WHEEL_ARR_ADDR)) output = *(sc->WHEEL_ARR_ADDR);
 	else if(output < 0.0f) output = 0.0f;
-	set_duty(sc->WHEEL_ARR_ADDR, sc->WHEEL_DUTY_ADDR, (int)output);
+	set_duty(sc->WHEEL_ARR_ADDR, sc->WHEEL_DUTY_ADDR, output);
 }
 
 // PWM below 10 isn't sufficient to turn the wheel
