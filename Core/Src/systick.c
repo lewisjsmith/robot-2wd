@@ -14,7 +14,7 @@
 
 void init_systick(void){
 	// Set to 1ms
-	SysTick->LOAD = 16000;
+	SysTick->LOAD = 16000 - 1;
 	SysTick->VAL = 0;
 	SysTick->CTRL |= (1u << 2);
 	SysTick->CTRL |= (1u << 1);
