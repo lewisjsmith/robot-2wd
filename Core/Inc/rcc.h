@@ -8,7 +8,7 @@
 #ifndef INC_RCC_H_
 #define INC_RCC_H_
 
-#include "my_types.h"
+#include "regs.h"
 
 void init_rcc(void);
 

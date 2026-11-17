@@ -13,16 +13,12 @@
 #include "my_types.h"
 #include "constants.h"
 
+#include "gpio.h"
+
 void init_motor_driver_gpio(Motor* motor) {
-	motor->MOTOR_OUT_1_GPIO->MODER &= ~(3u << (motor->MOTOR_OUT_1_GPIO_PIN * 2));
-	motor->MOTOR_OUT_1_GPIO->MODER |= (1u << (motor->MOTOR_OUT_1_GPIO_PIN * 2));
-
-	motor->MOTOR_OUT_2_GPIO->MODER &= ~(3u << (motor->MOTOR_OUT_2_GPIO_PIN * 2));
-	motor->MOTOR_OUT_2_GPIO->MODER |= (1u << (motor->MOTOR_OUT_2_GPIO_PIN * 2));
-
-	// PB8 as output
-	_GPIOB->MODER &= ~(3u << 16);
-	_GPIOB->MODER |= (1u << 16);
+	gpio_set_mode(motor->MOTOR_OUT_1_GPIO, motor->MOTOR_OUT_1_GPIO_PIN, OUTPUT);
+	gpio_set_mode(motor->MOTOR_OUT_2_GPIO, motor->MOTOR_OUT_2_GPIO_PIN, OUTPUT);
+	gpio_set_mode(_GPIOB, 8, OUTPUT); //PB8 STBY
 }
 
 void init_encoder_gpio_timer(Encoder* encoder){
@@ -48,16 +44,12 @@ void init_encoder_gpio_timer(Encoder* encoder){
 	encoder->MOTOR_ENCODER_TIMER->CR1 |= (1u << 0); // CEN
 
 	 // PA6 Channel 1, AF2
-	encoder->MOTOR_ENCODER_CHANNEL_1_GPIO->MODER &= ~(3u << (2 * encoder->MOTOR_ENCODER_CHANNEL_1_PIN));
-	encoder->MOTOR_ENCODER_CHANNEL_1_GPIO->MODER |= (2u << (2 * encoder->MOTOR_ENCODER_CHANNEL_1_PIN));
-	encoder->MOTOR_ENCODER_CHANNEL_1_GPIO->AFRL &= ~(15u << (4 * encoder->MOTOR_ENCODER_CHANNEL_1_PIN));
-	encoder->MOTOR_ENCODER_CHANNEL_1_GPIO->AFRL |= (2u << (4 * encoder->MOTOR_ENCODER_CHANNEL_1_PIN));
+	gpio_set_mode(encoder->MOTOR_ENCODER_CHANNEL_1_GPIO, encoder->MOTOR_ENCODER_CHANNEL_1_PIN, AF);
+	gpio_set_af(encoder->MOTOR_ENCODER_CHANNEL_1_GPIO, 6, 2);
 
 	// PA7 Channel 2, AF2
-	encoder->MOTOR_ENCODER_CHANNEL_2_GPIO->MODER &= ~(3u << (2 * encoder->MOTOR_ENCODER_CHANNEL_2_PIN));
-	encoder->MOTOR_ENCODER_CHANNEL_2_GPIO->MODER |= (2u << (2 * encoder->MOTOR_ENCODER_CHANNEL_2_PIN));
-	encoder->MOTOR_ENCODER_CHANNEL_2_GPIO->AFRL &= ~(15u << (4 * encoder->MOTOR_ENCODER_CHANNEL_2_PIN));
-	encoder->MOTOR_ENCODER_CHANNEL_2_GPIO->AFRL |= (2u << (4 * encoder->MOTOR_ENCODER_CHANNEL_2_PIN));
+	gpio_set_mode(encoder->MOTOR_ENCODER_CHANNEL_2_GPIO, encoder->MOTOR_ENCODER_CHANNEL_2_PIN, AF);
+	gpio_set_af(encoder->MOTOR_ENCODER_CHANNEL_2_GPIO, 7, 2);
 };
 
 void set_duty(volatile uint32_t* arr_addr, volatile uint32_t* duty_addr, float new_duty_ccr) {
@@ -72,34 +64,36 @@ void set_duty(volatile uint32_t* arr_addr, volatile uint32_t* duty_addr, float n
 #define WHEEL_LEFT 		0u
 #define WHEEL_RIGHT 	1u
 
+
+// TODO: abstract out the _GPIOB field
 void set_wheel_direction(uint8_t wheel, MotorMode direction) {
 	if(wheel == WHEEL_LEFT) {
 		if(direction == REVERSE) {
-			_GPIOB->BSRR |= (1u << 4);
-			_GPIOB->BSRR |= (1u << 21);
+			gpio_write(_GPIOB, 4, 1);
+			gpio_write(_GPIOB, 5, 0);
 		}
 		else if(direction == DRIVE) {
-			_GPIOB->BSRR |= (1u << 20);
-			_GPIOB->BSRR |= (1u << 5);
+			gpio_write(_GPIOB, 4, 0);
+			gpio_write(_GPIOB, 5, 1);
 		}
 		else if(direction == BRAKE) {
-			_GPIOB->BSRR |= (1u << 4);
-			_GPIOB->BSRR |= (1u << 5);
+			gpio_write(_GPIOB, 4, 1);
+			gpio_write(_GPIOB, 5, 1);
 		}
 	}
 
 	else if(wheel == WHEEL_RIGHT) {
 		if(direction == REVERSE) {
-			_GPIOB->BSRR |= (1u << 29);
-			_GPIOB->BSRR |= (1u << 14);
+			gpio_write(_GPIOB, 13, 0);
+			gpio_write(_GPIOB, 14, 1);
 		}
 		else if(direction == DRIVE) {
-			_GPIOB->BSRR |= (1u << 13);
-			_GPIOB->BSRR |= (1u << 30);
+			gpio_write(_GPIOB, 13, 1);
+			gpio_write(_GPIOB, 14, 0);
 		}
 		else if(direction == BRAKE) {
-			_GPIOB->BSRR |= (1u << 13);
-			_GPIOB->BSRR |= (1u << 14);
+			gpio_write(_GPIOB, 13, 1);
+			gpio_write(_GPIOB, 14, 1);
 		}
 	}
 }
@@ -115,37 +109,37 @@ void set_wheel_mode(Motor* motor, uint8_t wheel, MotorMode direction) {
 }
 
 void drive_forwards(void) {
-	_GPIOB->BSRR |= (1u << 8); // STBY
+	gpio_write(_GPIOB, 8, 1); // STBY
 	set_wheel_mode(&state.MOTOR_LEFT, WHEEL_LEFT, DRIVE);
 	set_wheel_mode(&state.MOTOR_RIGHT, WHEEL_RIGHT, DRIVE);
 }
 
 void drive_backwards(void) {
-	_GPIOB->BSRR |= (1u << 8);
+	gpio_write(_GPIOB, 8, 1); // STBY
 	set_wheel_mode(&state.MOTOR_LEFT, WHEEL_LEFT, REVERSE);
 	set_wheel_mode(&state.MOTOR_RIGHT, WHEEL_RIGHT, REVERSE);
 }
 
 void drive_left(void) {
-	_GPIOB->BSRR |= (1u << 8);
+	gpio_write(_GPIOB, 8, 1); // STBY
 	set_wheel_mode(&state.MOTOR_LEFT, WHEEL_LEFT, BRAKE);
 	set_wheel_mode(&state.MOTOR_RIGHT, WHEEL_RIGHT, DRIVE);
 }
 
 void drive_right(void) {
-	_GPIOB->BSRR |= (1u << 8);
+	gpio_write(_GPIOB, 8, 1); // STBY
 	set_wheel_mode(&state.MOTOR_LEFT, WHEEL_LEFT, DRIVE);
 	set_wheel_mode(&state.MOTOR_RIGHT, WHEEL_RIGHT, BRAKE);
 }
 
 void drive_stop(void) {
-	_GPIOB->BSRR |= (1u << 8);
+	gpio_write(_GPIOB, 8, 1); // STBY
 	set_wheel_mode(&state.MOTOR_LEFT, WHEEL_LEFT, BRAKE);
 	set_wheel_mode(&state.MOTOR_RIGHT, WHEEL_RIGHT, BRAKE);
 }
 
 void drive_disconnect(void) {
-	_GPIOB->BSRR |= (1u << 24);
+	gpio_write(_GPIOB, 8, 0); // STBY
 	set_wheel_mode(&state.MOTOR_LEFT, WHEEL_LEFT, BRAKE);
 	set_wheel_mode(&state.MOTOR_RIGHT, WHEEL_RIGHT, BRAKE);
 }
