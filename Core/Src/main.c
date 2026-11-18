@@ -21,6 +21,7 @@
 #include "main.h"
 #include "config.h"
 #include "app.h"
+#include "usart2.h"
 
 #include "tim.h"
 
@@ -28,20 +29,20 @@ int main(void) {
 	init_rcc();
 	init_systick();
 
-	init_usart2();
+	init_usart2(115200);
 
 	init_motor_driver_gpio(&state.MOTOR_LEFT);
 	init_motor_driver_gpio(&state.MOTOR_RIGHT);
 
 	// Need to save PSC and ARR somewhere
-	tim_pwm_init(_TIM2, 0, 799);
-	tim_pwm_channel_init(_TIM2, 2);
-	tim_pwm_channel_init(_TIM2, 3);
+	tim_pwm_init(state.MOTOR_LEFT.MOTOR_PWM_TIMER, 0, 799);
+	tim_pwm_channel_init(state.MOTOR_LEFT.MOTOR_PWM_TIMER, 2);
+	tim_pwm_channel_init(state.MOTOR_LEFT.MOTOR_PWM_TIMER, 3);
 	init_motor_pwm_gpio(&state.MOTOR_LEFT);
 	init_motor_pwm_gpio(&state.MOTOR_RIGHT);
 
-	tim_encoder_init(_TIM3);
-	tim_encoder_init(_TIM4);
+	tim_encoder_init(state.MOTOR_LEFT.ENCODER.MOTOR_ENCODER_TIMER);
+	tim_encoder_init(state.MOTOR_RIGHT.ENCODER.MOTOR_ENCODER_TIMER);
 	init_encoder_gpio(&state.MOTOR_LEFT.ENCODER);
 	init_encoder_gpio(&state.MOTOR_RIGHT.ENCODER);
 
@@ -88,11 +89,11 @@ int main(void) {
 //	stale_timer = SYSTICK_MILLISECONDS;
 //	timed_out = false;
 
-	while(1){
-		if(pending_cmd) {
-			wasd_control(pending_cmd);
 
-			pending_cmd = 0;
+	while(1){
+		char next_cmd = 0;
+		if(usart2_try_read(&next_cmd)) {
+			wasd_control(next_cmd);
 		}
 
 		scheduler(

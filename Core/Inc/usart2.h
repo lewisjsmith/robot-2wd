@@ -8,14 +8,14 @@
 #ifndef INC_USART2_H_
 #define INC_USART2_H_
 
+#include <stdbool.h>
+
 #include "my_types.h"
+#include "regs.h"
 
-void init_usart2(void);
-void USART2_IRQHandler(void);
+void init_usart2(uint32_t baud);
 void usart2_write_char(char);
-void usart2_write_string(char*);
-void usart2_read_char(void);
-
-extern volatile char pending_cmd;
+void usart2_write_string(const char*);
+bool usart2_try_read(char* out);
 
 #endif /* INC_USART2_H_ */
