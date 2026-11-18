@@ -27,8 +27,6 @@ typedef struct {
 	MotorPidState* state;
 } PidContext;
 
-//void pid(volatile PidState* state);
-void pid_step(Pid* pid, float dt, float* desired, float* actual);
 void pid_callback(void* context);
 
 void speed_callback(void* context);

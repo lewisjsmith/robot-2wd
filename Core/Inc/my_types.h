@@ -11,6 +11,8 @@
 #include "stdint.h"
 #include "regs.h"
 
+#include "pid.h"
+
 //
 //#define RCC_addr 	0x40023800
 //#define GPIOA_addr 	0x40020000
@@ -115,17 +117,6 @@ typedef struct {
 	volatile uint32_t ENCODER_COUNT_PREV;
 	float SPEED_ACTUAL;
 } Encoder;
-
-typedef struct {
-	volatile float 		INTEGRAL;
-	float 				PREV_ERROR;
-	float				OUTPUT;
-	float 				Kp;
-	float			 	Ki;
-	float 				Kd;
-	float				OUT_MIN;
-	float				OUT_MAX;
-} Pid;
 
 typedef enum {
 	DRIVE,

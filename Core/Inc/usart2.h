@@ -13,7 +13,7 @@
 #include "my_types.h"
 #include "regs.h"
 
-void init_usart2(uint32_t baud);
+void init_usart2(uint32_t);
 void usart2_write_char(char);
 void usart2_write_string(const char*);
 bool usart2_try_read(char* out);
