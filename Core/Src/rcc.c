@@ -7,7 +7,6 @@
 
 #include <stdint.h>
 
-#include "my_types.h"
 #include "rcc.h"
 
 void init_rcc(void) {

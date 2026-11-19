@@ -5,7 +5,6 @@
  *      Author: lewis
  */
 
-#include "my_types.h"
 #include "config.h"
 #include "math.h"
 #include "stdint.h"

@@ -8,7 +8,7 @@
 #ifndef INC_SYSTICK_H_
 #define INC_SYSTICK_H_
 
-#include "my_types.h"
+#include <stdint.h>
 
 extern volatile uint32_t SYSTICK_MILLISECONDS;
 

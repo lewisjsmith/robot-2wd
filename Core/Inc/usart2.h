@@ -9,9 +9,7 @@
 #define INC_USART2_H_
 
 #include <stdbool.h>
-
-#include "my_types.h"
-#include "regs.h"
+#include <stdint.h>
 
 void init_usart2(uint32_t);
 void usart2_write_char(char);

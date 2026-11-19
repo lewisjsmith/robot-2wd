@@ -10,10 +10,14 @@
 
 #include "motor.h"
 #include "usart2.h"
-#include "my_types.h"
 #include "constants.h"
 
 #include "gpio.h"
+
+void init_motor_pwm_gpio(Motor* motor) {
+	gpio_set_mode(motor->MOTOR_PWM_CHANNEL_GPIO, motor->MOTOR_PWM_CHANNEL_PIN, AF);
+	gpio_set_af(motor->MOTOR_PWM_CHANNEL_GPIO, motor->MOTOR_PWM_CHANNEL_PIN, 1);
+}
 
 void init_motor_driver_gpio(Motor* motor) {
 	gpio_set_mode(motor->MOTOR_OUT_1_GPIO, motor->MOTOR_OUT_1_GPIO_PIN, OUTPUT);

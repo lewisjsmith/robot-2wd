@@ -9,7 +9,6 @@
 
 #include "stm32f446xx.h"
 
-#include "my_types.h"
 #include "systick.h"
 
 void init_systick(void){

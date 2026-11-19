@@ -10,11 +10,8 @@
 
 #include <stdint.h>
 
-#include "my_types.h"
-
 #include "rcc.h"
 #include "usart2.h"
-#include "pwm.h"
 #include "systick.h"
 #include "motor.h"
 
