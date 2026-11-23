@@ -5,122 +5,170 @@
  *      Author: lewis
  */
 
+#include <stdio.h>
+
 #include "app.h"
 
 #include "gpio.h"
 #include "board.h"
+#include "usart2.h"
 #include "systick.h"
+#include "teleop.h"
+
+static const Pid INITIAL_PID_DEFAULT = {
+	.INTEGRAL 	= 0.0f,
+	.PREV_ERROR = 0.0f,
+	.Kp 		= 1500.0f,
+	.Ki 		= 1000.0f,
+	.Kd 		= 0.0f,
+	.OUT_MIN	= 0,
+	.OUT_MAX	= SHARED_PWM_ARR,
+};
+
+static Wheel wheel_left;
+static Wheel wheel_right;
+
+void app_init(void) {
+
+	wheel_left = (Wheel){
+			.motor = &state.MOTOR_LEFT,
+			.encoder = &state.ENCODER_LEFT,
+			.pid = INITIAL_PID_DEFAULT,
+			.SPEED_DESIRED = 0.157080f, // Move
+			.ticker = SYSTICK_MILLISECONDS,
+	};
+
+	wheel_right = (Wheel){
+			.motor = &state.MOTOR_RIGHT,
+			.encoder = &state.ENCODER_RIGHT,
+			.pid = INITIAL_PID_DEFAULT,
+			.SPEED_DESIRED = 0.157080f,
+			.ticker = SYSTICK_MILLISECONDS,
+	};
+
+};
+
+static uint32_t speed_print_ticker = 0;
+
+static void scheduler(
+		uint32_t* sample_ticker,
+		uint32_t sample_period,
+		callback_fn fn,
+		void* context) {
+	if(SYSTICK_MILLISECONDS - *sample_ticker >= sample_period) {
+		fn(context);
+		*sample_ticker = SYSTICK_MILLISECONDS;
+	}
+}
+
+static void print_telemetry(void* unused) {
+    (void)unused;
+    char buf[64];
+    snprintf(buf, sizeof(buf), "L %.3f  R %.3f m/s\r\n",
+             wheel_left.encoder->SPEED_ACTUAL,
+             wheel_right.encoder->SPEED_ACTUAL);
+    usart2_write_string(buf);
+}
+
+void app_step(void) {
+
+	char next_cmd = 0;
+	if(usart2_try_read(&next_cmd)) {
+		wasd_control(next_cmd);
+	}
+
+	scheduler(
+				&wheel_left.ticker,
+				state.SPEED_SAMPLE_PERIOD_MS,
+				speed_callback,
+				&wheel_left
+	);
+
+	scheduler(
+				&wheel_right.ticker,
+				state.SPEED_SAMPLE_PERIOD_MS,
+				speed_callback,
+				&wheel_right
+	);
+
+	scheduler(
+				&speed_print_ticker,
+				state.SPEED_SAMPLE_PRINT_PERIOD_MS,
+				print_telemetry,
+				NULL
+	);
+};
 
 void speed_callback(void* context) {
-	Motor* motor = (Motor*)context;
+	Wheel* wheel = (Wheel*)context;
 
 	uint32_t now = SYSTICK_MILLISECONDS;
 
-	uint32_t prev = motor->TICKER;
+	uint32_t prev = wheel->ticker;
 	float dt = (now - prev);
 	if(dt == 0.0f) return;
 
 	// Speed step
-	uint32_t prev_count = motor->ENCODER.ENCODER_COUNT_PREV;
-	uint32_t curr_count = motor->ENCODER.MOTOR_ENCODER_TIMER->CNT;
+	uint32_t prev_count = wheel->encoder->ENCODER_COUNT_PREV;
+	uint32_t curr_count = wheel->encoder->MOTOR_ENCODER_TIMER->CNT;
 	float speed = get_speed_from_encoder(prev_count, curr_count, dt);
-	motor->ENCODER.SPEED_ACTUAL = speed;
-	motor->ENCODER.ENCODER_COUNT_PREV = curr_count;
+	wheel->encoder->SPEED_ACTUAL = speed;
+	wheel->encoder->ENCODER_COUNT_PREV = curr_count;
 
-	motor->TICKER = now;
+	wheel->ticker = now;
 
-	if(motor->MODE == BRAKE) return;
+	if(wheel->motor->MODE == BRAKE) return;
 
 	// PID step
-	pid_step(&motor->PID, dt/1000.0f, &motor->SPEED_DESIRED, &motor->ENCODER.SPEED_ACTUAL);
-	float output = motor->PID.OUTPUT;
-	if(output > motor->MOTOR_PWM_TIMER->ARR) output = motor->MOTOR_PWM_TIMER->ARR;
-	else if(output < 0.0f) output = 0.0f;
-	motor_set_duty(motor, output);
+	pid_step(&wheel->pid, dt/1000.0f, &wheel->SPEED_DESIRED, &wheel->encoder->SPEED_ACTUAL);
+	float output = wheel->pid.OUTPUT;
+	motor_set_duty(wheel->motor, output);
 }
 
-
-// Hardcode into board.c with reference to direction faced? antic vs clock etc
-#define WHEEL_LEFT 		0u
-#define WHEEL_RIGHT 	1u
-
-// TODO: abstract out the _GPIOB field
-void set_wheel_direction(uint8_t wheel, MotorMode direction) {
-	if(wheel == WHEEL_LEFT) {
-		if(direction == REVERSE) {
-			gpio_write(_GPIOB, 4, 1);
-			gpio_write(_GPIOB, 5, 0);
-		}
-		else if(direction == DRIVE) {
-			gpio_write(_GPIOB, 4, 0);
-			gpio_write(_GPIOB, 5, 1);
-		}
-		else if(direction == BRAKE) {
-			gpio_write(_GPIOB, 4, 1);
-			gpio_write(_GPIOB, 5, 1);
-		}
-	}
-
-	else if(wheel == WHEEL_RIGHT) {
-		if(direction == REVERSE) {
-			gpio_write(_GPIOB, 13, 0);
-			gpio_write(_GPIOB, 14, 1);
-		}
-		else if(direction == DRIVE) {
-			gpio_write(_GPIOB, 13, 1);
-			gpio_write(_GPIOB, 14, 0);
-		}
-		else if(direction == BRAKE) {
-			gpio_write(_GPIOB, 13, 1);
-			gpio_write(_GPIOB, 14, 1);
-		}
-	}
-}
-
-void set_wheel_mode(Motor* motor, uint8_t wheel, MotorMode direction) {
-	if(motor->MODE != direction) {
-		set_wheel_direction(wheel, direction);
-		motor->PID.PREV_ERROR = 0.0f;
-		motor->MODE = direction;
-		if(direction != BRAKE) motor->PID.INTEGRAL = 30.0f;
-		else motor->PID.INTEGRAL = 0.0f;
+void set_wheel_mode(Wheel* const wheel, const MotorMode direction) {
+	if(wheel->motor->MODE != direction) {
+		set_wheel_direction(wheel->motor, direction);
+		wheel->pid.PREV_ERROR = 0.0f;
+		wheel->motor->MODE = direction;
+		if(direction != BRAKE) wheel->pid.INTEGRAL = 30.0f;
+		else wheel->pid.INTEGRAL = 0.0f;
 	}
 }
 
 void drive_forwards(void) {
 	gpio_write(_GPIOB, 8, 1); // STBY
-	set_wheel_mode(&state.MOTOR_LEFT, WHEEL_LEFT, DRIVE);
-	set_wheel_mode(&state.MOTOR_RIGHT, WHEEL_RIGHT, DRIVE);
+	set_wheel_mode(&wheel_left, DRIVE);
+	set_wheel_mode(&wheel_right, DRIVE);
 }
 
 void drive_backwards(void) {
 	gpio_write(_GPIOB, 8, 1); // STBY
-	set_wheel_mode(&state.MOTOR_LEFT, WHEEL_LEFT, REVERSE);
-	set_wheel_mode(&state.MOTOR_RIGHT, WHEEL_RIGHT, REVERSE);
+	set_wheel_mode(&wheel_left, REVERSE);
+	set_wheel_mode(&wheel_right, REVERSE);
 }
 
 void drive_left(void) {
 	gpio_write(_GPIOB, 8, 1); // STBY
-	set_wheel_mode(&state.MOTOR_LEFT, WHEEL_LEFT, BRAKE);
-	set_wheel_mode(&state.MOTOR_RIGHT, WHEEL_RIGHT, DRIVE);
+	set_wheel_mode(&wheel_left, BRAKE);
+	set_wheel_mode(&wheel_right, DRIVE);
 }
 
 void drive_right(void) {
 	gpio_write(_GPIOB, 8, 1); // STBY
-	set_wheel_mode(&state.MOTOR_LEFT, WHEEL_LEFT, DRIVE);
-	set_wheel_mode(&state.MOTOR_RIGHT, WHEEL_RIGHT, BRAKE);
+	set_wheel_mode(&wheel_left, DRIVE);
+	set_wheel_mode(&wheel_right, BRAKE);
 }
 
 void drive_stop(void) {
 	gpio_write(_GPIOB, 8, 1); // STBY
-	set_wheel_mode(&state.MOTOR_LEFT, WHEEL_LEFT, BRAKE);
-	set_wheel_mode(&state.MOTOR_RIGHT, WHEEL_RIGHT, BRAKE);
+	set_wheel_mode(&wheel_left, BRAKE);
+	set_wheel_mode(&wheel_right, BRAKE);
 }
 
 void drive_disconnect(void) {
 	gpio_write(_GPIOB, 8, 0); // STBY
-	set_wheel_mode(&state.MOTOR_LEFT, WHEEL_LEFT, BRAKE);
-	set_wheel_mode(&state.MOTOR_RIGHT, WHEEL_RIGHT, BRAKE);
+	set_wheel_mode(&wheel_left, BRAKE);
+	set_wheel_mode(&wheel_right, BRAKE);
 }
 
 

@@ -12,10 +12,18 @@
 
 #include "motor.h"
 
-#define WHEEL_LEFT_TIM3_CNT ((uint32_t*) 0x40000424)
-#define WHEEL_RIGHT_TIM4_CNT ((uint32_t*) 0x40000824)
+typedef struct {
+	Motor* 			motor;
+	Encoder*		encoder;
+	Pid 			pid;
+	float 			SPEED_DESIRED;
+	uint32_t		ticker;
+} Wheel;
 
 void speed_callback(void*);
+
+void app_init(void);
+void app_step(void);
 
 void drive_forwards(void);
 void drive_backwards(void);
@@ -24,12 +32,13 @@ void drive_right(void);
 void drive_stop(void);
 void drive_disconnect(void);
 
-void set_wheel_mode(Motor*, uint8_t, MotorMode);
+void set_wheel_mode(Wheel*, MotorMode);
 
 typedef struct {
 	volatile float* WHEEL_LEFT_SPEED;
 	volatile float* WHEEL_RIGHT_SPEED;
 } PrintContext;
 
+typedef void (* callback_fn)(void* context);
 
 #endif /* INC_APP_H_ */

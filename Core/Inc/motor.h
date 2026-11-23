@@ -8,6 +8,8 @@
 #ifndef INC_MOTOR_H_
 #define INC_MOTOR_H_
 
+#include <stdbool.h>
+
 #include "regs.h"
 #include "pid.h"
 #include "encoder.h"
@@ -29,14 +31,8 @@ typedef struct {
 	uint8_t 				MOTOR_PWM_CHANNEL;
 	uint8_t 				MOTOR_PWM_CHANNEL_PIN;
 
-	Encoder ENCODER;
-
-	Pid PID;
-	float SPEED_DESIRED;
-
 	MotorMode MODE;
-
-	uint32_t TICKER;
+	bool 	POLARITY;
 } Motor;
 
 void init_motor_driver_gpio(Motor* motor);
@@ -44,5 +40,6 @@ void init_motor_pwm_gpio(Motor* motor);
 void init_motor_driver_stby(void);
 void motor_init(Motor* motor);
 void motor_set_duty(Motor* m, float ccr);
+void set_wheel_direction(Motor* motor, MotorMode direction);
 
 #endif /* INC_MOTOR_H_ */

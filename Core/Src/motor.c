@@ -40,6 +40,46 @@ void motor_set_duty(Motor* m, float ccr) {
     tim_pwm_set(m->MOTOR_PWM_TIMER, m->MOTOR_PWM_CHANNEL, (uint32_t)(ccr + 0.5f));
 }
 
+void set_wheel_direction(Motor* motor, MotorMode direction) {
+	if(direction == DRIVE) {
+		gpio_write(
+				motor->MOTOR_OUT_1_GPIO,
+				motor->MOTOR_OUT_1_GPIO_PIN,
+				motor->POLARITY
+		);
 
+		gpio_write(
+				motor->MOTOR_OUT_2_GPIO,
+				motor->MOTOR_OUT_2_GPIO_PIN,
+				!motor->POLARITY
+		);
+	}
+	else if(direction == REVERSE) {
+		gpio_write(
+				motor->MOTOR_OUT_1_GPIO,
+				motor->MOTOR_OUT_1_GPIO_PIN,
+				!motor->POLARITY
+		);
+
+		gpio_write(
+				motor->MOTOR_OUT_2_GPIO,
+				motor->MOTOR_OUT_2_GPIO_PIN,
+				motor->POLARITY
+		);
+	}
+	else if(direction == BRAKE) {
+		gpio_write(
+				motor->MOTOR_OUT_1_GPIO,
+				motor->MOTOR_OUT_1_GPIO_PIN,
+				1
+		);
+
+		gpio_write(
+				motor->MOTOR_OUT_2_GPIO,
+				motor->MOTOR_OUT_2_GPIO_PIN,
+				1
+		);
+	}
+}
 
 

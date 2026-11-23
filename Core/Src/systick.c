@@ -30,15 +30,3 @@ void delay_ms(uint32_t milliseconds) {
 	uint32_t start = SYSTICK_MILLISECONDS;
 	while((SYSTICK_MILLISECONDS - start) < milliseconds);
 }
-
-void scheduler(
-		uint32_t* sample_ticker,
-		uint32_t sample_period,
-		callback_fn fn,
-		void* context) {
-	if(SYSTICK_MILLISECONDS - *sample_ticker >= sample_period) {
-		fn(context);
-		*sample_ticker = SYSTICK_MILLISECONDS;
-	}
-}
-
