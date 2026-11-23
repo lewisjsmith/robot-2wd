@@ -10,28 +10,26 @@
 
 #include <stdint.h>
 
-#include "rcc.h"
-#include "usart2.h"
-#include "systick.h"
 #include "motor.h"
 
 #define WHEEL_LEFT_TIM3_CNT ((uint32_t*) 0x40000424)
 #define WHEEL_RIGHT_TIM4_CNT ((uint32_t*) 0x40000824)
 
-void init_state(State*);
+void speed_callback(void*);
+
+void drive_forwards(void);
+void drive_backwards(void);
+void drive_left(void);
+void drive_right(void);
+void drive_stop(void);
+void drive_disconnect(void);
+
+void set_wheel_mode(Motor*, uint8_t, MotorMode);
 
 typedef struct {
-	MotorPidState* state;
-} PidContext;
+	volatile float* WHEEL_LEFT_SPEED;
+	volatile float* WHEEL_RIGHT_SPEED;
+} PrintContext;
 
-void pid_callback(void* context);
-
-void speed_callback(void* context);
-
-// To-do:
-// Split pid fn parameters, split separate pid state from overall state
-// Set desired speeds for turning to be enacted by PID instead of manual PWM
-// Better printing telemetry
-// Remove constants to separate file named constants
 
 #endif /* INC_APP_H_ */

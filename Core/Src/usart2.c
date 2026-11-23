@@ -5,8 +5,6 @@
  *      Author: lewis
  */
 
-#include <stdint.h>
-
 #include "stm32f446xx.h"
 
 #include "rcc.h"

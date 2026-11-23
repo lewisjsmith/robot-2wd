@@ -13,7 +13,6 @@
 extern volatile uint32_t SYSTICK_MILLISECONDS;
 
 void init_systick(void);
-void SysTick_Handler(void);
 void delay_ms(uint32_t);
 
 typedef void (* callback_fn)(void* context);
