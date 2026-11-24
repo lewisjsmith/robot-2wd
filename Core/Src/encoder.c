@@ -12,7 +12,7 @@
 #include "robot_params.h"
 
 // AF2 hardcoded
-void init_encoder_gpio(Encoder* encoder) {
+static void init_encoder_gpio(const Encoder* encoder) {
 	 // PA6 Channel 1, AF2, PB for RHS
 	gpio_set_mode(encoder->MOTOR_ENCODER_CHANNEL_1_GPIO, encoder->MOTOR_ENCODER_CHANNEL_1_PIN, AF);
 	gpio_set_af(encoder->MOTOR_ENCODER_CHANNEL_1_GPIO, encoder->MOTOR_ENCODER_CHANNEL_1_PIN, 2);
@@ -22,12 +22,12 @@ void init_encoder_gpio(Encoder* encoder) {
 	gpio_set_af(encoder->MOTOR_ENCODER_CHANNEL_2_GPIO, encoder->MOTOR_ENCODER_CHANNEL_2_PIN, 2);
 }
 
-void encoder_init(Encoder* encoder) {
+void encoder_init(const Encoder* encoder) {
 	tim_encoder_init(encoder->MOTOR_ENCODER_TIMER);
 	init_encoder_gpio(encoder);
 }
 
-float get_speed_from_encoder(volatile uint32_t prev_cnt, volatile uint32_t curr_cnt, uint32_t period_ms) {
+float get_speed_from_encoder(uint32_t prev_cnt, uint32_t curr_cnt, uint32_t period_ms) {
 	uint16_t prev = prev_cnt;
 	uint16_t curr = curr_cnt;
 	int16_t diff = curr - prev;

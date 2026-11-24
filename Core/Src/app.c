@@ -23,6 +23,19 @@
 #include "usart2.h"
 #include "systick.h"
 #include "teleop.h"
+#include "motor.h"
+#include "pid.h"
+#include "encoder.h"
+
+typedef struct {
+	Motor* 			motor;
+	Encoder*		encoder;
+	Pid 			pid;
+	float 			SPEED_DESIRED;
+	uint32_t		ticker;
+} Wheel;
+
+typedef void (* callback_fn)(void* context);
 
 static const Pid INITIAL_PID_DEFAULT = {
 	.INTEGRAL 	= 0.0f,
@@ -44,7 +57,7 @@ void app_init(void) {
 			.encoder = &state.ENCODER_LEFT,
 			.pid = INITIAL_PID_DEFAULT,
 			.SPEED_DESIRED = 0.157080f, // Move
-			.ticker = SYSTICK_MILLISECONDS,
+			.ticker = 0,
 	};
 
 	wheel_right = (Wheel){
@@ -52,7 +65,7 @@ void app_init(void) {
 			.encoder = &state.ENCODER_RIGHT,
 			.pid = INITIAL_PID_DEFAULT,
 			.SPEED_DESIRED = 0.157080f,
-			.ticker = SYSTICK_MILLISECONDS,
+			.ticker = 0,
 	};
 
 };
@@ -64,9 +77,10 @@ static void scheduler(
 		uint32_t sample_period,
 		callback_fn fn,
 		void* context) {
-	if(SYSTICK_MILLISECONDS - *sample_ticker >= sample_period) {
+	uint32_t now = systick_ms();
+	if(now - *sample_ticker >= sample_period) {
 		fn(context);
-		*sample_ticker = SYSTICK_MILLISECONDS;
+		*sample_ticker = now;
 	}
 }
 
@@ -77,6 +91,32 @@ static void print_telemetry(void* unused) {
              wheel_left.encoder->SPEED_ACTUAL,
              wheel_right.encoder->SPEED_ACTUAL);
     usart2_write_string(buf);
+}
+
+static void speed_callback(void* context) {
+	Wheel* wheel = (Wheel*)context;
+
+	uint32_t now = systick_ms();
+
+	uint32_t prev = wheel->ticker;
+	float dt = (now - prev);
+	if(dt == 0.0f) return;
+
+	// Speed step
+	uint32_t prev_count = wheel->encoder->ENCODER_COUNT_PREV;
+	uint32_t curr_count = wheel->encoder->MOTOR_ENCODER_TIMER->CNT;
+	float speed = get_speed_from_encoder(prev_count, curr_count, dt);
+	wheel->encoder->SPEED_ACTUAL = speed;
+	wheel->encoder->ENCODER_COUNT_PREV = curr_count;
+
+	wheel->ticker = now;
+
+	if(wheel->motor->MODE == BRAKE) return;
+
+	// PID step
+	pid_step(&wheel->pid, dt/1000.0f, &wheel->SPEED_DESIRED, &wheel->encoder->SPEED_ACTUAL);
+	float output = wheel->pid.OUTPUT;
+	motor_set_duty(wheel->motor, output);
 }
 
 void app_step(void) {
@@ -108,33 +148,7 @@ void app_step(void) {
 	);
 };
 
-void speed_callback(void* context) {
-	Wheel* wheel = (Wheel*)context;
-
-	uint32_t now = SYSTICK_MILLISECONDS;
-
-	uint32_t prev = wheel->ticker;
-	float dt = (now - prev);
-	if(dt == 0.0f) return;
-
-	// Speed step
-	uint32_t prev_count = wheel->encoder->ENCODER_COUNT_PREV;
-	uint32_t curr_count = wheel->encoder->MOTOR_ENCODER_TIMER->CNT;
-	float speed = get_speed_from_encoder(prev_count, curr_count, dt);
-	wheel->encoder->SPEED_ACTUAL = speed;
-	wheel->encoder->ENCODER_COUNT_PREV = curr_count;
-
-	wheel->ticker = now;
-
-	if(wheel->motor->MODE == BRAKE) return;
-
-	// PID step
-	pid_step(&wheel->pid, dt/1000.0f, &wheel->SPEED_DESIRED, &wheel->encoder->SPEED_ACTUAL);
-	float output = wheel->pid.OUTPUT;
-	motor_set_duty(wheel->motor, output);
-}
-
-void set_wheel_mode(Wheel* const wheel, const MotorMode direction) {
+static void set_wheel_mode(Wheel* wheel, MotorMode direction) {
 	if(wheel->motor->MODE != direction) {
 		set_wheel_direction(wheel->motor, direction);
 		wheel->pid.PREV_ERROR = 0.0f;
@@ -183,16 +197,16 @@ void drive_disconnect(void) {
 
 
 // 	No response reaction
-//	uint32_t stale_timer = SYSTICK_MILLISECONDS;
+//	uint32_t stale_timer = systick_ms();
 //	uint32_t stale_threshold_ms = 500;
 //	uint32_t timed_out = false;
 //	// main loop...
-//	if(!timed_out && SYSTICK_MILLISECONDS - stale_timer >= stale_threshold_ms) {
+//	if(!timed_out && systick_ms() - stale_timer >= stale_threshold_ms) {
 //		drive_stop();
 //		timed_out = true;
 //	}
 //	// within the pending_cmd scope
-//	stale_timer = SYSTICK_MILLISECONDS;
+//	stale_timer = systick_ms();
 //	timed_out = false;
 
 

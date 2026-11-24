@@ -17,12 +17,11 @@ typedef struct {
 	volatile _GPIO_struct* 	MOTOR_ENCODER_CHANNEL_2_GPIO;
 	uint8_t 				MOTOR_ENCODER_CHANNEL_2_PIN;
 
-	volatile uint32_t 		ENCODER_COUNT_PREV;
+	uint32_t 				ENCODER_COUNT_PREV;
 	float 					SPEED_ACTUAL;
 } Encoder;
 
-void init_encoder_gpio(Encoder*);
-void encoder_init(Encoder*);
-float get_speed_from_encoder(volatile uint32_t prev_cnt, volatile uint32_t curr_cnt, uint32_t period_ms);
+void encoder_init(const Encoder* encoder);
+float get_speed_from_encoder(uint32_t prev_cnt, volatile uint32_t curr_cnt, uint32_t period_ms);
 
 #endif /* INC_ENCODER_H_ */

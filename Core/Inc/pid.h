@@ -9,7 +9,7 @@
 #define INC_PID_H_
 
 typedef struct {
-	volatile float 		INTEGRAL;
+	float 				INTEGRAL;
 	float 				PREV_ERROR;
 	float				OUTPUT;
 	float 				Kp;
@@ -19,6 +19,6 @@ typedef struct {
 	float				OUT_MAX;
 } Pid;
 
-void pid_step(Pid*, float, float*, float*);
+void pid_step(Pid* pid, float dt, const float* desired, const float* actual);
 
 #endif /* INC_PID_H_ */

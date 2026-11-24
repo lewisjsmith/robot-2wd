@@ -33,11 +33,9 @@ typedef struct {
 	bool 	POLARITY;
 } Motor;
 
-void init_motor_driver_gpio(Motor* motor);
-void init_motor_pwm_gpio(Motor* motor);
 void init_motor_driver_stby(void);
-void motor_init(Motor* motor);
-void motor_set_duty(Motor* m, float ccr);
-void set_wheel_direction(Motor* motor, MotorMode direction);
+void motor_init(const Motor* motor);
+void motor_set_duty(const Motor* m, float ccr);
+void set_wheel_direction(const Motor* motor, MotorMode direction);
 
 #endif /* INC_MOTOR_H_ */

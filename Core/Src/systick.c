@@ -20,7 +20,11 @@ void init_systick(void){
 	SysTick->CTRL |= (1u << 0);
 }
 
-volatile uint32_t SYSTICK_MILLISECONDS = 0;
+static volatile uint32_t SYSTICK_MILLISECONDS = 0;
+
+uint32_t systick_ms(void) {
+	return SYSTICK_MILLISECONDS;
+}
 
 void SysTick_Handler(void) {
 	SYSTICK_MILLISECONDS += 1;

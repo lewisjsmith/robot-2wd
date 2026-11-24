@@ -10,7 +10,7 @@
 
 #include <stdint.h>
 
-extern volatile uint32_t SYSTICK_MILLISECONDS;
+uint32_t systick_ms(void);
 
 void init_systick(void);
 void delay_ms(uint32_t);

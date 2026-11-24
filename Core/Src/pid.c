@@ -10,7 +10,7 @@
 // PWM below 10 isn't sufficient to turn the wheel
 // Normalise through constants, 0.3f division required as this is the maximum unloaded speed
 // Watch out for encoder quantisation noise amplification
-void pid_step(Pid* pid, float dt, float* desired, float* actual) {
+void pid_step(Pid* pid, float dt, const float* desired, const float* actual) {
 	float error = *desired - *actual;
 	float error_p = error * pid->Kp;
 	float error_d = ((error - pid->PREV_ERROR)/dt) * pid->Kd;
