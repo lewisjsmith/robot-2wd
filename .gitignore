@@ -5,3 +5,6 @@ Release/
 # IDE / per-machine
 .settings/
 *.launch
+
+# Own notes
+todo.txt
