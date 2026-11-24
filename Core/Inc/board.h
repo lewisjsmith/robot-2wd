@@ -11,6 +11,7 @@
 #include <stdint.h>
 
 #include "motor.h"
+#include "encoder.h"
 
 #define SHARED_PWM_TIMER 		_TIM2
 #define SHARED_PWM_PSC			0

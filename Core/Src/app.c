@@ -5,6 +5,15 @@
  *      Author: lewis
  */
 
+// To-do:
+// Apply initial motor mode(s) stated in the board.c config, needs to be written
+// Replaced hardcoded STBY
+// Extract out PID gains, default desired speeds/setpoints, initial integral to robot_params
+// Teleop keycodes, list as chars, enum or other
+// Consider stale-command timeout, naive implementation at the bottom of app.c
+// Remove rcc (.c/.h), move clock constant
+//
+
 #include <stdio.h>
 
 #include "app.h"

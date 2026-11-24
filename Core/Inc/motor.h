@@ -11,8 +11,6 @@
 #include <stdbool.h>
 
 #include "regs.h"
-#include "pid.h"
-#include "encoder.h"
 
 typedef enum {
 	DRIVE,

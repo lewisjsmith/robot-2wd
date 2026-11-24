@@ -11,7 +11,6 @@
 
 #include "regs.h"
 #include "tim.h"
-#include "encoder.h"
 
 State state = {
 

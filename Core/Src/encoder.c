@@ -13,11 +13,11 @@
 
 // AF2 hardcoded
 void init_encoder_gpio(Encoder* encoder) {
-	 // PA6 Channel 1, AF2
+	 // PA6 Channel 1, AF2, PB for RHS
 	gpio_set_mode(encoder->MOTOR_ENCODER_CHANNEL_1_GPIO, encoder->MOTOR_ENCODER_CHANNEL_1_PIN, AF);
 	gpio_set_af(encoder->MOTOR_ENCODER_CHANNEL_1_GPIO, encoder->MOTOR_ENCODER_CHANNEL_1_PIN, 2);
 
-	// PA7 Channel 2, AF2
+	// PA7 Channel 2, AF2, PB for RHS
 	gpio_set_mode(encoder->MOTOR_ENCODER_CHANNEL_2_GPIO, encoder->MOTOR_ENCODER_CHANNEL_2_PIN, AF);
 	gpio_set_af(encoder->MOTOR_ENCODER_CHANNEL_2_GPIO, encoder->MOTOR_ENCODER_CHANNEL_2_PIN, 2);
 }

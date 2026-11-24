@@ -11,6 +11,8 @@
 #include <stdint.h>
 
 #include "motor.h"
+#include "encoder.h"
+#include "pid.h"
 
 typedef struct {
 	Motor* 			motor;
@@ -33,11 +35,6 @@ void drive_stop(void);
 void drive_disconnect(void);
 
 void set_wheel_mode(Wheel*, MotorMode);
-
-typedef struct {
-	volatile float* WHEEL_LEFT_SPEED;
-	volatile float* WHEEL_RIGHT_SPEED;
-} PrintContext;
 
 typedef void (* callback_fn)(void* context);
 

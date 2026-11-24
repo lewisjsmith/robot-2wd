@@ -40,6 +40,7 @@ void tim_pwm_channel_init(volatile _TIM_struct* tim, uint8_t ch) {
 		tim->CCMR1 &= ~(3u << 0); // Set as output
 		tim->CCMR1 &= ~(7u << 4);
 		tim->CCMR1 |= (6u << 4);
+		tim->CCMR1 |= (1u << 3);
 		tim->CCER |= (1u << 0);
 		tim_pwm_set(tim, 1, 0);
 	}
@@ -47,6 +48,7 @@ void tim_pwm_channel_init(volatile _TIM_struct* tim, uint8_t ch) {
 		tim->CCMR1 &= ~(3u << 8);
 		tim->CCMR1 &= ~(7u << 12);
 		tim->CCMR1 |= (6u << 12);
+		tim->CCMR1 |= (1u << 11);
 		tim->CCER |= (1u << 4);
 		tim_pwm_set(tim, 2, 0);
 	}
@@ -54,6 +56,7 @@ void tim_pwm_channel_init(volatile _TIM_struct* tim, uint8_t ch) {
 		tim->CCMR2 &= ~(3u << 0);
 		tim->CCMR2 &= ~(7u << 4);
 		tim->CCMR2 |= (6u << 4);
+		tim->CCMR2 |= (1u << 3);
 		tim->CCER |= (1u << 8);
 		tim_pwm_set(tim, 3, 0);
 	}
@@ -61,6 +64,7 @@ void tim_pwm_channel_init(volatile _TIM_struct* tim, uint8_t ch) {
 		tim->CCMR2 &= ~(3u << 8);
 		tim->CCMR2 &= ~(7u << 12);
 		tim->CCMR2 |= (6u << 12);
+		tim->CCMR2 |= (1u << 11);
 		tim->CCER |= (1u << 12);
 		tim_pwm_set(tim, 4, 0);
 	}

@@ -5,8 +5,6 @@
  *      Author: lewis
  */
 
-#include "usart2.h"
-
 #ifndef INC_TELEOP_H_
 #define INC_TELEOP_H_
 

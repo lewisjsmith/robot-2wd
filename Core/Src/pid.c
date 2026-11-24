@@ -5,9 +5,6 @@
  *      Author: lewis
  */
 
-#ifndef SRC_PID_C_
-#define SRC_PID_C_
-
 #include "pid.h"
 
 // PWM below 10 isn't sufficient to turn the wheel
@@ -26,5 +23,3 @@ void pid_step(Pid* pid, float dt, float* desired, float* actual) {
 	pid->PREV_ERROR = error;
 	pid->OUTPUT = (error_p + error_d + error_i);
 }
-
-#endif /* SRC_PID_C_ */
