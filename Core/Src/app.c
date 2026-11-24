@@ -12,7 +12,6 @@
 // Teleop keycodes, list as chars, enum or other
 // Consider stale-command timeout, naive implementation at the bottom of app.c
 // Remove rcc (.c/.h), move clock constant
-//
 
 #include <stdio.h>
 
