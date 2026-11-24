@@ -1,0 +1,7 @@
+# Build output
+Debug/
+Release/
+
+# IDE / per-machine
+.settings/
+*.launch
